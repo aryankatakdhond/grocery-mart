@@ -15,14 +15,31 @@ const app = express();
 // ── MIDDLEWARE ──
 
 // Allow ALL origins during development
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+
+  if (origin.includes('localhost') ||
+      origin.includes('127.0.0.1') ||
+      origin.includes('file://')) {
+    return true;
+  }
+
+  if (/\.onrender\.com$/.test(origin) || /\.render\.com$/.test(origin)) {
+    return true;
+  }
+
+  if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+    return true;
+  }
+
+  return false;
+}
+
 app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (mobile apps, curl, Postman)
-    // or any localhost / 127.0.0.1 origin
-    if (!origin ||
-        origin.includes('localhost') ||
-        origin.includes('127.0.0.1') ||
-        origin.includes('file://')) {
+    // and trusted local or Render-hosted frontends.
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
