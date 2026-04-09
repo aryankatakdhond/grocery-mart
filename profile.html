@@ -109,7 +109,9 @@
     var token     = localStorage.getItem('token');
     if (!userEmail) { alert('Please log in.'); window.location.href = 'login.html'; }
 
-    var API = 'http://localhost:5000';
+    var API = window.location.origin && window.location.origin !== 'null'
+      ? window.location.origin
+      : 'http://localhost:5000';
 
     /* ── LOAD PROFILE FROM API ── */
     function loadProfile() {

@@ -13,6 +13,7 @@ const crypto       = require('crypto');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'grocerymart_super_secret_key_change_this';
 const EMAIL_CONFIGURED = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+const FRONTEND_BASE_URL = process.env.FRONTEND_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000';
 
 // ── Email transporter ──
 const transporter = nodemailer.createTransport({
@@ -25,7 +26,7 @@ const transporter = nodemailer.createTransport({
 
 // ── Helper: send verification email ──
 async function sendVerificationEmail(email, name, token) {
-  const link = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/verify-email.html?token=${token}`;
+  const link = `${FRONTEND_BASE_URL}/verify-email.html?token=${token}`;
   await transporter.sendMail({
     from:    `"Grocery Mart" <${process.env.EMAIL_USER}>`,
     to:      email,
@@ -223,7 +224,7 @@ router.post('/forgot-password', async (req, res) => {
       [token, expiry, user.id]
     );
 
-    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/reset-password.html?token=${token}&email=${encodeURIComponent(email)}`;
+    const resetLink = `${FRONTEND_BASE_URL}/reset-password.html?token=${token}&email=${encodeURIComponent(email)}`;
 
     await transporter.sendMail({
       from:    `"Grocery Mart" <${process.env.EMAIL_USER}>`,

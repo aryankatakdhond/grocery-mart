@@ -431,7 +431,9 @@
        API — Load products from backend
     ══════════════════════════════════════ */
 
-    var API = 'http://localhost:5000';
+    var API = window.location.origin && window.location.origin !== 'null'
+      ? window.location.origin
+      : 'http://localhost:5000';
 
     /* ── FETCH SHOP STATUS from API on page load ── */
     function checkShopStatus() {
@@ -750,7 +752,7 @@
       var isAdmin = localStorage.getItem('isAdmin') === 'true';
       if (!token || isAdmin) return;
 
-      fetch('http://localhost:5000/api/orders/mine', {
+      fetch(API + '/api/orders/mine', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(function(res) { return res.json(); })
@@ -1000,8 +1002,8 @@
           grid.innerHTML = '<p style="padding:20px;color:#aaa;">Loading...</p>';
 
           var apiUrl = cat === 'All Categories'
-            ? 'http://localhost:5000/api/products'
-            : 'http://localhost:5000/api/products/category/' + encodeURIComponent(cat);
+            ? API + '/api/products'
+            : API + '/api/products/category/' + encodeURIComponent(cat);
 
           fetch(apiUrl)
             .then(function(r) { return r.json(); })
@@ -1092,7 +1094,7 @@
 
     /* Open product modal by ID — used by View All grid */
     function openProductById(id, cardEl) {
-      fetch('http://localhost:5000/api/products/' + id)
+      fetch(API + '/api/products/' + id)
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (!data.product) return;
