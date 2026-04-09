@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grocery Mart - Checkout</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/checkout.css"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="top-navbar">
+    <a href="index.html" class="logo">🛒 Grocery <strong>Mart</strong></a>
+    <div class="steps-bar">
+      <div class="step done"><span class="step-num">✓</span><span class="step-label">Cart</span></div>
+      <div class="step-line active"></div>
+      <div class="step active"><span class="step-num">2</span><span class="step-label">Checkout</span></div>
+      <div class="step-line"></div>
+      <div class="step"><span class="step-num">3</span><span class="step-label">Confirmation</span></div>
+    </div>
+    <a href="cart.html" class="back-link">← Back to Cart</a>
+  </header>
+
+  <main class="checkout-page">
+
+    <!-- ══ LEFT COLUMN ══ -->
+    <div class="checkout-left">
+
+      <!-- ── 1. DELIVERY ADDRESS ── -->
+      <div class="checkout-card">
+        <div class="card-head">
+          <span class="card-num">1</span>
+          <h3>Delivery Address</h3>
+          <button class="btn-change" onclick="toggleAddrForm()">Change</button>
+        </div>
+
+        <!-- Saved address display -->
+        <div id="addrDisplay">
+          <div class="addr-saved-row">
+            <span class="addr-tag" id="addrTag">Home</span>
+            <div>
+              <p class="addr-name" id="addrName">-</p>
+              <p class="addr-full" id="addrFull">No address saved. Click Change to add one.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Address form (hidden by default) -->
+        <div id="addrForm" class="addr-form" style="display:none;">
+
+          <!-- Saved addresses list for this user -->
+          <div id="savedAddrList" class="saved-addr-list"></div>
+
+          <!-- New address form -->
+          <p class="form-section-title">+ Add New Address</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" id="chkName" placeholder="Your full name"/>
+            </div>
+            <div class="form-group">
+              <label>Phone *</label>
+              <input type="tel" id="chkPhone" placeholder="10-digit number" maxlength="10"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Flat / House No. *</label>
+            <input type="text" id="chkFlat" placeholder="e.g. Flat 4B, Tower C"/>
+          </div>
+          <div class="form-group">
+            <label>Street / Area *</label>
+            <input type="text" id="chkStreet" placeholder="Street name, locality"/>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>City *</label>
+              <input type="text" id="chkCity" placeholder="City"/>
+            </div>
+            <div class="form-group">
+              <label>Pincode *</label>
+              <input type="text" id="chkPin" placeholder="6-digit pincode" maxlength="6"
+                oninput="checkPincode(this.value)"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>State</label>
+            <select id="chkState">
+              <option value="">Select state</option>
+              <option>Maharashtra</option><option>Delhi</option>
+              <option>Karnataka</option><option>Tamil Nadu</option>
+              <option>Gujarat</option><option>Rajasthan</option>
+              <option>West Bengal</option><option>Uttar Pradesh</option>
+              <option>Telangana</option><option>Kerala</option>
+              <option>Madhya Pradesh</option><option>Punjab</option>
+              <option>Haryana</option><option>Other</option>
+            </select>
+          </div>
+
+          <!-- Pincode availability message -->
+          <div id="pinMsg" style="display:none;" class="pin-msg"></div>
+
+          <!-- Address type -->
+          <div class="addr-type-row">
+            <button class="addr-type-btn active" onclick="pickAddrType(this,'Home')">🏠 Home</button>
+            <button class="addr-type-btn" onclick="pickAddrType(this,'Work')">💼 Work</button>
+            <button class="addr-type-btn" onclick="pickAddrType(this,'Other')">📍 Other</button>
+          </div>
+
+          <button class="btn-save-addr" onclick="saveAddress()">Save & Use This Address</button>
+        </div>
+      </div>
+
+      <!-- ── 2. PAYMENT METHOD ── -->
+      <div class="checkout-card">
+        <div class="card-head">
+          <span class="card-num">2</span>
+          <h3>Payment Method</h3>
+        </div>
+
+        <!-- UPI -->
+        <div class="pay-option" id="optUpi" onclick="selectPay('upi')">
+          <div class="pay-radio" id="rUpi"></div>
+          <div class="pay-icon">📱</div>
+          <div class="pay-info">
+            <p class="pay-name">UPI</p>
+            <p class="pay-sub">GPay · PhonePe · Paytm · BHIM</p>
+          </div>
+        </div>
+        <div class="pay-panel" id="pUpi" style="display:none;">
+          <div class="upi-apps">
+            <button class="upi-btn active" onclick="pickUpi(this,'GPay')">
+              <span class="upi-logo">G</span><span>GPay</span>
+            </button>
+            <button class="upi-btn" onclick="pickUpi(this,'PhonePe')">
+              <span class="upi-logo pp">P</span><span>PhonePe</span>
+            </button>
+            <button class="upi-btn" onclick="pickUpi(this,'Paytm')">
+              <span class="upi-logo pt">T</span><span>Paytm</span>
+            </button>
+            <button class="upi-btn" onclick="pickUpi(this,'Other')">
+              <span class="upi-logo ot">+</span><span>Other</span>
+            </button>
+          </div>
+          <div class="form-group" style="margin-top:12px;">
+            <label>Enter UPI ID (optional)</label>
+            <input type="text" id="upiId" placeholder="yourname@upi or yourname@okaxis"/>
+          </div>
+        </div>
+
+        <!-- Credit/Debit Card -->
+        <div class="pay-option" id="optCard" onclick="selectPay('card')">
+          <div class="pay-radio" id="rCard"></div>
+          <div class="pay-icon">💳</div>
+          <div class="pay-info">
+            <p class="pay-name">Credit / Debit Card</p>
+            <p class="pay-sub">Visa · Mastercard · RuPay</p>
+          </div>
+        </div>
+        <div class="pay-panel" id="pCard" style="display:none;">
+          <!-- Live card preview -->
+          <div class="card-preview">
+            <div class="card-chip">▮▮▮</div>
+            <p class="card-num-preview" id="prevNum">•••• •••• •••• ••••</p>
+            <div class="card-bottom-row">
+              <div>
+                <p class="card-lbl">Card Holder</p>
+                <p class="card-val" id="prevHolder">YOUR NAME</p>
+              </div>
+              <div>
+                <p class="card-lbl">Expires</p>
+                <p class="card-val" id="prevExpiry">MM/YY</p>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Card Number *</label>
+            <input type="text" id="cardNum" placeholder="1234 5678 9012 3456" maxlength="19"
+              oninput="fmtCardNum(this)"/>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Card Holder Name *</label>
+              <input type="text" id="cardHolder" placeholder="Name as on card"
+                oninput="document.getElementById('prevHolder').textContent=this.value.toUpperCase()||'YOUR NAME'"/>
+            </div>
+            <div class="form-group">
+              <label>Expiry (MM/YY) *</label>
+              <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5"
+                oninput="fmtExpiry(this)"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>CVV *</label>
+            <input type="password" id="cardCvv" placeholder="3-digit CVV" maxlength="3"/>
+          </div>
+        </div>
+
+        <!-- COD -->
+        <div class="pay-option" id="optCod" onclick="selectPay('cod')">
+          <div class="pay-radio" id="rCod"></div>
+          <div class="pay-icon">💵</div>
+          <div class="pay-info">
+            <p class="pay-name">Cash on Delivery</p>
+            <p class="pay-sub">Pay when your order arrives</p>
+          </div>
+        </div>
+        <div class="pay-panel cod-note" id="pCod" style="display:none;">
+          🧾 Please keep exact change ready. Our delivery partner cannot provide change above ₹500.
+        </div>
+
+      </div>
+
+      <!-- ── 3. ORDER NOTES ── -->
+      <div class="checkout-card">
+        <div class="card-head">
+          <span class="card-num">3</span>
+          <h3>Order Notes <span style="font-weight:400;font-size:13px;color:#aaa;">(optional)</span></h3>
+        </div>
+        <textarea id="orderNotes" class="order-notes" placeholder="e.g. Leave at door, call before delivery, no plastic bags..."></textarea>
+      </div>
+
+    </div>
+    <!-- end checkout-left -->
+
+
+    <!-- ══ RIGHT COLUMN: Order Summary ══ -->
+    <div class="checkout-right">
+      <div class="summary-card">
+        <h3 class="summary-title">Order Summary</h3>
+
+        <div class="summary-items" id="summaryItems"></div>
+
+        <div class="summary-divider"></div>
+
+        <div class="summary-rows">
+          <div class="sum-row"><span>Subtotal</span><span id="sSubtotal">₹0</span></div>
+          <div class="sum-row"><span>Delivery Fee</span><span id="sDelivery">₹49</span></div>
+          <div class="sum-row green-row" id="sDiscRow" style="display:none;">
+            <span>Coupon Discount</span><span id="sDiscount">-₹0</span>
+          </div>
+          <div class="sum-row"><span>Tax (5%)</span><span id="sTax">₹0</span></div>
+        </div>
+
+        <div class="summary-divider"></div>
+
+        <div class="sum-total-row">
+          <span>Total</span>
+          <span id="sTotal" class="sum-total-val">₹0</span>
+        </div>
+
+        <!-- Coupon Code -->
+        <div class="coupon-section">
+          <div class="coupon-row">
+            <input type="text" id="couponInput" placeholder="Enter coupon code" 
+              style="flex:1;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;"
+              oninput="this.value=this.value.toUpperCase()"/>
+            <button onclick="applyCoupon()" 
+              style="padding:10px 18px;background:#2d6a4f;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;white-space:nowrap;">
+              Apply
+            </button>
+          </div>
+          <p id="couponMsg" style="font-size:12px;margin-top:6px;display:none;"></p>
+        </div>
+
+        <!-- Delivery availability notice -->
+        <div id="availNotice" class="avail-notice" style="display:none;"></div>
+
+        <button class="btn-place-order" id="btnPlace" onclick="placeOrder()">
+          🛒 Place Order
+        </button>
+
+        <p class="secure-txt">🔒 Safe & Encrypted Checkout</p>
+
+        <div class="pay-logos">
+          <span class="pay-logo-pill">📱 UPI</span>
+          <span class="pay-logo-pill">💳 Visa</span>
+          <span class="pay-logo-pill">💳 Mastercard</span>
+          <span class="pay-logo-pill">💵 COD</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    /* ── Guard ── */
+    if (!localStorage.getItem('loggedInUser')) {
+      alert('Please log in first.');
+      window.location.href = 'login.html';
+    }
+
+    var API         = 'http://localhost:5000';
+    var userEmail   = localStorage.getItem('loggedInUser') || 'guest';
+    var addrType    = 'Home';
+    var payMethod   = '';
+    var upiApp      = 'GPay';
+    var isDeliverable = false; /* false until pincode is checked ✅ */
+
+    /* Load cart from localStorage only — no demo fallback */
+    var cartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
+
+    /* ── Load address ── */
+    function loadAddress() {
+      var addr  = localStorage.getItem('deliveryAddress') || '';
+      var type  = localStorage.getItem('deliveryType')    || 'Home';
+      var name  = localStorage.getItem('chkName')         || userEmail;
+      var phone = localStorage.getItem('chkPhone')        || '';
+      document.getElementById('addrTag').textContent  = type;
+      document.getElementById('addrName').textContent = name + (phone ? ' · ' + phone : '');
+      document.getElementById('addrFull').textContent = addr || 'No address saved. Click Change to add one.';
+      loadSavedAddresses();
+
+      /* If address already saved, auto-check pincode deliverability */
+      if (addr) {
+        var pinMatch = addr.match(/(\d{6})/);
+        if (pinMatch) {
+          isDeliverable = true; /* assume deliverable if address already saved */
+          /* Verify with API silently */
+          fetch(API + '/api/orders/check-pincode/' + pinMatch[1])
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+              isDeliverable = data.deliverable;
+              if (!data.deliverable) {
+                document.getElementById('notAvailBox').style.display = 'block';
+              }
+            })
+            .catch(function() {
+              isDeliverable = true; /* allow if API unavailable */
+            });
+        } else {
+          isDeliverable = true;
+        }
+      }
+    }
+
+    function loadSavedAddresses() {
+      var saved = JSON.parse(localStorage.getItem('addr_' + userEmail) || '[]');
+      var list  = document.getElementById('savedAddrList');
+      list.innerHTML = '';
+      if (saved.length === 0) return;
+      var icons = { Home:'🏠', Work:'💼', Other:'📍' };
+      saved.forEach(function(a, i) {
+        var div = document.createElement('div');
+        div.className = 'saved-addr-item';
+        div.innerHTML =
+          '<div class="saved-addr-content">' +
+            '<span>' + (icons[a.type]||'📍') + '</span>' +
+            '<div><p class="sad-type">' + a.type + '</p><p class="sad-addr">' + a.address + '</p></div>' +
+          '</div>' +
+          '<button class="btn-use-saved" onclick="useSavedAddr(' + i + ')">Use</button>';
+        list.appendChild(div);
+      });
+    }
+
+    function useSavedAddr(i) {
+      var saved = JSON.parse(localStorage.getItem('addr_' + userEmail) || '[]');
+      var a = saved[i];
+      if (!a) return;
+      localStorage.setItem('deliveryAddress', a.address);
+      localStorage.setItem('deliveryType', a.type);
+      if (a.name)  localStorage.setItem('chkName',  a.name);
+      if (a.phone) localStorage.setItem('chkPhone', a.phone);
+      loadAddress();
+      toggleAddrForm();
+    }
+
+    function toggleAddrForm() {
+      var f = document.getElementById('addrForm');
+      f.style.display = f.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function pickAddrType(btn, type) {
+      addrType = type;
+      btn.closest('.addr-type-row').querySelectorAll('.addr-type-btn')
+        .forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    }
+
+    /* ── Pincode check ── */
+    var serviceablePinsFallback = [
+      "400001","400002","400003","411001","411002","411028","411044",
+      "411030","411045","411057","400076","400053",
+      "560001","560002","110001","110002","500001","600001","700001","380001"
+    ];
+
+    function checkPincode(pin) {
+      var msg = document.getElementById('pinMsg');
+      if (!msg) return;
+      if (pin.length !== 6 || isNaN(pin)) {
+        msg.style.display = 'none';
+        isDeliverable = false;
+        return;
+      }
+
+      /* Show immediately using fallback list */
+      msg.style.display = 'block';
+      var inFallback = serviceablePinsFallback.includes(pin) ||
+        JSON.parse(localStorage.getItem('serviceablePins') || '[]').includes(pin);
+
+      if (inFallback) {
+        msg.className   = 'pin-msg pin-ok';
+        msg.textContent = '✅ We deliver to this pincode!';
+        isDeliverable   = true;
+      } else {
+        msg.className   = 'pin-msg pin-no';
+        msg.textContent = '⏳ Checking delivery availability...';
+        isDeliverable   = false;
+      }
+
+      /* Also verify with API */
+      fetch(API + '/api/orders/check-pincode/' + pin)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.deliverable) {
+            msg.className   = 'pin-msg pin-ok';
+            msg.textContent = '✅ Great! We deliver to ' + (data.area || 'this area') + '.';
+            isDeliverable   = true;
+          } else {
+            msg.className   = 'pin-msg pin-no';
+            msg.textContent = '❌ Sorry, we don\'t deliver to this pincode yet.';
+            isDeliverable   = false;
+          }
+        })
+        .catch(function() {
+          /* Keep fallback result */
+          if (inFallback) {
+            msg.className   = 'pin-msg pin-ok';
+            msg.textContent = '✅ We deliver to this pincode!';
+            isDeliverable   = true;
+          } else {
+            msg.className   = 'pin-msg pin-no';
+            msg.textContent = '❌ Sorry, we don\'t deliver to this pincode yet.';
+            isDeliverable   = false;
+          }
+        });
+    }
+
+    /* ── Save address ── */
+    function saveAddress() {
+      var name   = document.getElementById('chkName').value.trim();
+      var phone  = document.getElementById('chkPhone').value.trim();
+      var flat   = document.getElementById('chkFlat').value.trim();
+      var street = document.getElementById('chkStreet').value.trim();
+      var city   = document.getElementById('chkCity').value.trim();
+      var pin    = document.getElementById('chkPin').value.trim();
+      var state  = document.getElementById('chkState').value;
+      if (!name||!phone||!flat||!street||!city||!pin) { alert('Please fill all required (*) fields.'); return; }
+      if (phone.length !== 10) { alert('Enter a valid 10-digit phone number.'); return; }
+      if (pin.length   !== 6)  { alert('Enter a valid 6-digit pincode.'); return; }
+
+      var fullAddr = flat + ', ' + street + ', ' + city + ' - ' + pin + (state ? ', ' + state : '');
+      localStorage.setItem('deliveryAddress', fullAddr);
+      localStorage.setItem('deliveryType',    addrType);
+      localStorage.setItem('chkName',  name);
+      localStorage.setItem('chkPhone', phone);
+
+      /* ── Save to DB if logged in ── */
+      var tok = localStorage.getItem('token');
+      if (tok) {
+        fetch(API + '/api/user/addresses', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok },
+          body:    JSON.stringify({ name:name, phone:phone, flat:flat, street:street, city:city, pincode:pin, state:state||'', type:addrType })
+        }).catch(function() {}); /* Fire and forget */
+      }
+
+      /* Also save to localStorage as fallback */
+      var userAddrs = JSON.parse(localStorage.getItem('addr_' + userEmail) || '[]');
+      if (!userAddrs.some(function(a) { return a.address === fullAddr; })) {
+        userAddrs.unshift({ address:fullAddr, type:addrType, name:name, phone:phone });
+        if (userAddrs.length > 5) userAddrs.pop();
+        localStorage.setItem('addr_' + userEmail, JSON.stringify(userAddrs));
+      }
+      loadAddress();
+      toggleAddrForm();
+    }
+
+    /* ── Payment selection ── */
+    function selectPay(m) {
+      payMethod = m;
+      ['upi','card','cod'].forEach(function(x) {
+        var cap = x.charAt(0).toUpperCase() + x.slice(1);
+        document.getElementById('opt' + cap).classList.remove('selected');
+        document.getElementById('r'   + cap).classList.remove('checked');
+        document.getElementById('p'   + cap).style.display = 'none';
+      });
+      var cap = m.charAt(0).toUpperCase() + m.slice(1);
+      document.getElementById('opt' + cap).classList.add('selected');
+      document.getElementById('r'   + cap).classList.add('checked');
+      document.getElementById('p'   + cap).style.display = 'block';
+    }
+
+    function pickUpi(btn, app) {
+      upiApp = app;
+      document.querySelectorAll('.upi-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    }
+
+    /* ── Card formatters ── */
+    function fmtCardNum(inp) {
+      var v = inp.value.replace(/\D/g,'').substring(0,16);
+      inp.value = v.replace(/(.{4})/g,'$1 ').trim();
+      document.getElementById('prevNum').textContent = inp.value || '•••• •••• •••• ••••';
+    }
+    function fmtExpiry(inp) {
+      var v = inp.value.replace(/\D/g,'').substring(0,4);
+      if (v.length >= 3) v = v.substring(0,2) + '/' + v.substring(2);
+      inp.value = v;
+      document.getElementById('prevExpiry').textContent = v || 'MM/YY';
+    }
+
+    /* ── Load order summary ── */
+    function loadSummary() {
+      var subtotal  = 0;
+      var html      = '';
+      cartItems.forEach(function(item) {
+        subtotal += item.price * item.qty;
+        var imgSrc = item.img || item.image_url || '';
+        html +=
+          '<div class="sum-item">' +
+            '<img src="' + imgSrc + '" class="sum-img" alt="" onerror="this.style.display=\'none\'"/>' +
+            '<div class="sum-item-info">' +
+              '<p class="sum-item-name">' + item.name + '</p>' +
+              '<p class="sum-item-qty">Qty: ' + item.qty + '</p>' +
+            '</div>' +
+            '<p class="sum-item-price">₹' + (item.price * item.qty) + '</p>' +
+          '</div>';
+      });
+      document.getElementById('summaryItems').innerHTML = html;
+
+      var delivery = subtotal >= 999 ? 0 : 49;
+      var discount = appliedDiscount || 0;
+      var tax      = Math.round((subtotal - discount) * 0.05);
+      var total    = subtotal + delivery - discount + tax;
+
+      document.getElementById('sSubtotal').textContent = '₹' + subtotal;
+      document.getElementById('sDelivery').textContent = delivery === 0 ? 'FREE' : '₹' + delivery;
+      document.getElementById('sTax').textContent      = '₹' + tax;
+      document.getElementById('sTotal').textContent    = '₹' + total;
+
+      if (discount > 0) {
+        document.getElementById('sDiscRow').style.display = 'flex';
+        document.getElementById('sDiscount').textContent  = '-₹' + discount;
+      } else {
+        document.getElementById('sDiscRow').style.display = 'none';
+      }
+
+      localStorage.setItem('orderTotal',    total);
+      localStorage.setItem('orderSubtotal', subtotal);
+    }
+
+    /* ── DEBUG: Check all required data ── */
+    function debugCart() {
+      var token   = localStorage.getItem('token');
+      var cart    = localStorage.getItem('cartItems');
+      var address = localStorage.getItem('deliveryAddress');
+      var user    = localStorage.getItem('loggedInUser');
+
+      var msg = '=== DEBUG INFO ===\n\n';
+      msg += '👤 User: '    + (user    || 'NOT FOUND') + '\n';
+      msg += '🔑 Token: '   + (token   ? token.substring(0,30) + '...' : 'NOT FOUND ❌') + '\n';
+      msg += '📍 Address: ' + (address || 'NOT FOUND ❌') + '\n';
+      msg += '🛒 Cart: '    + (cart    || 'NOT FOUND ❌') + '\n\n';
+
+      if (cart) {
+        var items = JSON.parse(cart);
+        msg += 'Cart Items (' + items.length + '):\n';
+        items.forEach(function(item, i) {
+          msg += (i+1) + '. ' + item.name + ' x' + item.qty + ' = ₹' + (item.price * item.qty) + '\n';
+        });
+      }
+
+      msg += '\n💳 Payment selected: ' + (payMethod || 'NONE ❌') + '\n';
+      msg += '📦 Deliverable: ' + (isDeliverable ? 'YES ✅' : 'NO ❌') + '\n';
+
+      alert(msg);
+    }
+
+    /* ── Place Order — Real API Call ── */
+    function placeOrder() {
+      /* Block if shop is closed */
+      if (localStorage.getItem('shopOpen') === 'false') {
+        alert('🔴 Our outlet is currently closed.\n\nWe are open daily from 7:00 AM – 10:30 PM.\nYour cart is saved — please come back during store hours.');
+        return;
+      }
+
+      var addr = localStorage.getItem('deliveryAddress') || '';
+      if (!addr)      { alert('Please add a delivery address first.'); return; }
+      if (!payMethod) { alert('Please select a payment method.'); return; }
+
+      /* Validate card fields */
+      if (payMethod === 'card') {
+        var num    = document.getElementById('cardNum').value.replace(/\s/g,'');
+        var holder = document.getElementById('cardHolder').value.trim();
+        var expiry = document.getElementById('cardExpiry').value.trim();
+        var cvv    = document.getElementById('cardCvv').value.trim();
+        if (!num||num.length<16||!holder||!expiry||!cvv||cvv.length<3) {
+          alert('Please fill in all card details correctly.'); return;
+        }
+      }
+
+      /* Reload cartItems fresh from localStorage */
+      cartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      if (cartItems.length === 0) {
+        alert('Your cart is empty! Please add items first.');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      var token = localStorage.getItem('token');
+      if (!token) {
+        alert('Session expired. Please log in again.');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      /* Get totals */
+      var subtotal = parseInt(document.getElementById('sSubtotal').textContent.replace('₹','')) || 0;
+      var delivFee = document.getElementById('sDelivery').textContent === 'FREE' ? 0 : 49;
+      var tax      = parseInt(document.getElementById('sTax').textContent.replace('₹',''))     || 0;
+      var total    = parseInt(document.getElementById('sTotal').textContent.replace('₹',''))   || 0;
+
+      /* Recalculate if totals are 0 */
+      if (total === 0) {
+        subtotal = cartItems.reduce(function(s, i) { return s + (i.price * i.qty); }, 0);
+        delivFee = subtotal >= 999 ? 0 : 49;
+        tax      = Math.round(subtotal * 0.05);
+        total    = subtotal + delivFee + tax;
+      }
+
+      /* Build items array */
+      var items = cartItems.map(function(item) {
+        return {
+          product_id: item.product_id || 1,
+          name:       item.name,
+          price:      item.price,
+          qty:        item.qty,
+          image_url:  item.img || item.image_url || ''
+        };
+      });
+
+      /* Disable button */
+      var btn = document.getElementById('btnPlace');
+      btn.textContent = '⏳ Placing Order...';
+      btn.disabled    = true;
+
+      /* ── API CALL ── */
+      fetch(API + '/api/orders', {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({
+          items:            items,
+          subtotal:         subtotal,
+          delivery_fee:     delivFee,
+          tax:              tax,
+          total:            total,
+          payment_method:   payMethod,
+          delivery_address: addr,
+          coupon_code:      appliedCoupon  || null,
+          discount:         appliedDiscount || 0,
+          notes:            document.getElementById('orderNotes').value.trim()
+        })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (!data.success) {
+          if (data.message && (data.message.toLowerCase().includes('token') || data.message.toLowerCase().includes('log in'))) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('loggedInUser');
+            alert('\u26a0\ufe0f Session expired. Please log in again.');
+            window.location.href = 'login.html';
+            return;
+          }
+          alert(data.message || 'Failed to place order. Please try again.');
+          btn.textContent = '\U0001f6d2 Place Order';
+          btn.disabled    = false;
+          return;
+        }
+
+        /* Save order to localStorage for confirmation page */
+        localStorage.setItem('lastOrder', JSON.stringify({
+          id:       data.order.order_number,
+          date:     new Date().toLocaleDateString('en-IN'),
+          time:     new Date().toLocaleTimeString('en-IN'),
+          customer: localStorage.getItem('loggedInUser'),
+          phone:    localStorage.getItem('chkPhone') || '',
+          address:  addr,
+          items:    cartItems,
+          payment:  payMethod === 'upi' ? 'UPI (' + upiApp + ')' : payMethod === 'card' ? 'Card' : 'Cash on Delivery',
+          notes:    document.getElementById('orderNotes').value.trim(),
+          status:   'confirmed',
+          subtotal: '₹' + subtotal,
+          total:    '₹' + total,
+          dbId:     data.order.id
+        }));
+
+        /* Clear cart */
+        localStorage.removeItem('cartItems');
+        localStorage.removeItem('discountAmt');
+
+        /* Go to confirmation */
+        window.location.href = 'confirmation.html';
+      })
+      .catch(function(err) {
+        alert('❌ Error: ' + err.message + '\n\nMake sure:\n1. Backend is running (npm run dev)\n2. You are logged in\n3. Cart is not empty');
+        btn.textContent = '🛒 Place Order';
+        btn.disabled    = false;
+      });
+    }
+
+    /* ── APPLY COUPON — Real API ── */
+    var appliedDiscount = 0;
+    var appliedCoupon   = '';
+
+    function applyCoupon() {
+      var code     = document.getElementById('couponInput').value.trim().toUpperCase();
+      var msgEl    = document.getElementById('couponMsg');
+      var subtotal = parseInt(document.getElementById('sSubtotal').textContent.replace('₹','')) || 0;
+
+      if (!code) { alert('Please enter a coupon code.'); return; }
+
+      msgEl.style.display = 'block';
+      msgEl.style.color   = '#888';
+      msgEl.textContent   = '⏳ Checking...';
+
+      var btn = document.querySelector('.btn-apply');
+      if (btn) { btn.textContent = '...'; btn.disabled = true; }
+
+      fetch(API + '/api/coupons/validate', {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('token')
+        },
+        body: JSON.stringify({ code: code, subtotal: subtotal })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) {
+          appliedDiscount = data.discount;
+          appliedCoupon   = code;
+          msgEl.innerHTML = '✅ ' + data.message +
+            ' &nbsp;<span onclick="removeCoupon()" style="color:#e74c3c;cursor:pointer;font-size:11px;text-decoration:underline;">Remove</span>';
+          msgEl.style.color = '#2d6a4f';
+          loadSummary(); /* Recalculate with discount */
+        } else {
+          appliedDiscount = 0;
+          appliedCoupon   = '';
+          msgEl.textContent = '❌ ' + (data.message || 'Invalid or expired coupon.');
+          msgEl.style.color = '#e74c3c';
+        }
+        if (btn) { btn.textContent = 'Apply'; btn.disabled = false; }
+      })
+      .catch(function() {
+        /* Fallback: check default coupons */
+        var valid = { 'FRESH10': {type:'percent', val:10}, 'SAVE20': {type:'percent', val:20}, 'MART5': {type:'percent', val:5} };
+        if (btn) { btn.textContent = 'Apply'; btn.disabled = false; }
+        if (valid[code]) {
+          var disc        = Math.round(subtotal * valid[code].val / 100);
+          appliedDiscount = disc;
+          appliedCoupon   = code;
+          msgEl.innerHTML = '✅ Coupon applied! ' + valid[code].val + '% off — you save ₹' + disc +
+            ' &nbsp;<span onclick="removeCoupon()" style="color:#e74c3c;cursor:pointer;font-size:11px;text-decoration:underline;">Remove</span>';
+          msgEl.style.color = '#2d6a4f';
+          loadSummary();
+        } else {
+          appliedDiscount = 0;
+          appliedCoupon   = '';
+          msgEl.textContent = '❌ Invalid coupon code. Try FRESH10, SAVE20 or MART5.';
+          msgEl.style.color = '#e74c3c';
+        }
+      });
+    }
+
+    function removeCoupon() {
+      appliedDiscount = 0;
+      appliedCoupon   = '';
+      document.getElementById('couponInput').value = '';
+      var msgEl = document.getElementById('couponMsg');
+      msgEl.style.display = 'none';
+      loadSummary();
+    }
+
+    /* ── Init ── */
+    loadAddress();
+    loadSummary();
+    selectPay('upi');
+
+    /* Show closed notice if shop is closed */
+    if (localStorage.getItem('shopOpen') === 'false') {
+      var placeBtn = document.getElementById('btnPlace');
+      if (placeBtn) {
+        placeBtn.disabled    = true;
+        placeBtn.textContent = '🔴 Outlet Closed — Opens at 7:00 AM';
+        placeBtn.style.background = '#888';
+      }
+      var notice = document.createElement('div');
+      notice.style.cssText = 'background:#fff3e0;border:1.5px solid #ffcc80;border-radius:12px;padding:16px 18px;margin:0 0 20px;font-size:13px;color:#e65100;font-family:Poppins,sans-serif;line-height:1.6;';
+      notice.innerHTML = '🔴 <strong>Our outlet is currently closed.</strong><br>We are open daily from <strong>7:00 AM – 10:30 PM</strong>. Your details are saved — come back during store hours to complete your purchase.';
+      var mainEl = document.querySelector('.checkout-page') || document.querySelector('main');
+      if (mainEl) mainEl.insertBefore(notice, mainEl.firstChild);
+    }
+  </script>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="site-footer">
+    <div class="sf-inner">
+      <div class="sf-col">
+        <span class="sf-logo">🛒 Grocery <strong>Mart</strong></span>
+        <p class="sf-desc">Fresh products delivered fast to your door.</p>
+      </div>
+      <div class="sf-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">🏠 Home</a></li>
+          <li><a href="cart.html">🛒 My Cart</a></li>
+          <li><a href="profile.html">📦 My Orders</a></li>
+          <li><a href="search.html">🔍 Search</a></li>
+        </ul>
+      </div>
+      <div class="sf-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="profile.html">Track Order</a></li>
+          <li><a href="#">Returns &amp; Refunds</a></li>
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="sf-col">
+        <h4>Account</h4>
+        <ul>
+          <li><a href="login.html">Login / Sign Up</a></li>
+          <li><a href="profile.html">My Profile</a></li>
+          <li><a href="profile.html">Saved Addresses</a></li>
+          <li><a href="admin.html">Admin Panel</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="sf-bottom">
+      <p>© 2025 Grocery Mart. All rights reserved.</p>
+      <div class="sf-pay">
+        <span>📱 UPI</span>
+        <span>💵 COD</span>
+        <span>💳 Card</span>
+      </div>
+    </div>
+  </footer>
+
+
+  <script>
+
+    /* ── SYNC CART BADGE from localStorage ── */
+    function syncCartBadge() {
+      var items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      var total = items.reduce(function(s, i) { return s + (i.qty || 1); }, 0);
+      /* Update all badge elements on page */
+      document.querySelectorAll('.cart-count-badge, #cartBadge').forEach(function(el) {
+        el.textContent = total || 0;
+      });
+    }
+    syncCartBadge();
+  </script>
+
+</body>
+</html>

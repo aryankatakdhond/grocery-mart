@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Notifications — Grocery Mart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Poppins',sans-serif; background:#f5f7f5; min-height:100vh; }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      background:#1a2e22; color:#fff; padding:0 24px;
+      display:flex; align-items:center; justify-content:space-between;
+      height:64px; position:sticky; top:0; z-index:100;
+    }
+    .nav-logo { font-size:20px; font-weight:700; color:#fff; text-decoration:none; }
+    .nav-logo strong { color:#7dcea0; }
+    .nav-back { color:#7dcea0; text-decoration:none; font-size:14px; font-weight:600; display:flex; align-items:center; gap:6px; }
+    .nav-back:hover { color:#fff; }
+
+    /* ── PAGE ── */
+    .page { max-width:640px; margin:0 auto; padding:32px 20px 60px; }
+
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+    .page-title  { font-size:22px; font-weight:700; color:#1a2e22; }
+    .btn-clear   { font-size:13px; color:#e74c3c; background:none; border:1.5px solid #fcd; border-radius:8px; padding:7px 14px; cursor:pointer; font-family:'Poppins',sans-serif; font-weight:600; }
+    .btn-clear:hover { background:#fff5f5; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align:center; padding:80px 20px; }
+    .empty-icon  { font-size:56px; margin-bottom:16px; }
+    .empty-title { font-size:18px; font-weight:600; color:#333; margin-bottom:8px; }
+    .empty-sub   { font-size:14px; color:#aaa; margin-bottom:24px; }
+    .btn-home    { display:inline-block; padding:12px 28px; background:#2d6a4f; color:#fff; border-radius:10px; font-size:14px; font-weight:600; text-decoration:none; }
+
+    /* ── NOTIFICATION CARDS ── */
+    .notif-list  { display:flex; flex-direction:column; gap:12px; }
+
+    .notif-card {
+      background:#fff; border-radius:14px; padding:18px 20px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.06); border:1.5px solid #eee;
+      display:flex; gap:16px; align-items:flex-start;
+      transition:box-shadow 0.2s;
+    }
+    .notif-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.1); }
+    .notif-card.unread { border-left:4px solid #2d6a4f; background:#f8fcf9; }
+
+    .notif-icon {
+      width:48px; height:48px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:22px; flex-shrink:0;
+    }
+
+    .notif-body  { flex:1; }
+    .notif-order { font-size:15px; font-weight:700; color:#1a2e22; margin-bottom:4px; }
+    .notif-msg   { font-size:13px; color:#555; margin-bottom:8px; }
+    .notif-badge {
+      display:inline-block; padding:4px 14px; border-radius:20px;
+      font-size:12px; font-weight:700;
+    }
+    .notif-time  { font-size:11px; color:#aaa; margin-top:8px; }
+
+    /* Status colors */
+    .s-packed     { background:#fff8e1; color:#f57f17; }
+    .s-dispatched { background:#fff3e0; color:#e65100; }
+    .s-delivered  { background:#e8f5e9; color:#2d6a4f; }
+    .s-cancelled  { background:#fce4ec; color:#c62828; }
+    .s-confirmed  { background:#e3f2fd; color:#1565c0; }
+
+    .ic-packed     { background:#fff8e1; }
+    .ic-dispatched { background:#fff3e0; }
+    .ic-delivered  { background:#e8f5e9; }
+    .ic-cancelled  { background:#fce4ec; }
+    .ic-confirmed  { background:#e3f2fd; }
+
+    /* ── DATE GROUP ── */
+    .date-label { font-size:12px; font-weight:600; color:#aaa; text-transform:uppercase; letter-spacing:0.5px; margin:16px 0 8px; }
+
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">🛒 Grocery <strong>Mart</strong></a>
+    <a href="#" onclick="window.location.href='http://'+window.location.hostname+':5500/index.html'" class="nav-back">← Back to Home</a>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1 class="page-title">🔔 Notifications</h1>
+      <button class="btn-clear" onclick="clearAll()">Clear All</button>
+    </div>
+
+    <div id="notifContainer"></div>
+  </div>
+
+
+  <script>
+    var sIco  = { confirmed:'✅', packed:'📦', dispatched:'🚚', delivered:'🎉', cancelled:'❌' };
+    var sText = {
+      confirmed:  'Your order has been confirmed.',
+      packed:     'Your order is being packed and will be dispatched soon.',
+      dispatched: 'Your order is out for delivery! Expect it shortly.',
+      delivered:  'Your order has been delivered. Enjoy! 😊',
+      cancelled:  'Your order has been cancelled.'
+    };
+    var lastSeen = parseInt(localStorage.getItem('notifLastSeen') || '0');
+
+    function render() {
+      var notifs    = JSON.parse(localStorage.getItem('orderNotifs') || '[]');
+      var container = document.getElementById('notifContainer');
+
+      if (notifs.length === 0) {
+        container.innerHTML =
+          '<div class="empty-state">' +
+            '<div class="empty-icon">🔔</div>' +
+            '<p class="empty-title">No notifications yet</p>' +
+            '<p class="empty-sub">Order status updates from admin will appear here.</p>' +
+            '<a href="#" onclick="var b=window.location.origin+window.location.pathname.replace(\'notifications.html\',\'\');window.location.href=b+\'index.html\'" class="btn-home">Start Shopping</a>' +
+          '</div>';
+        return;
+      }
+
+      /* Group by date */
+      var groups = {};
+      notifs.slice().reverse().forEach(function(n) {
+        var date = new Date(n.time);
+        var key  = date.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long' });
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(n);
+      });
+
+      var html = '<div class="notif-list">';
+      Object.keys(groups).forEach(function(date) {
+        html += '<p class="date-label">' + date + '</p>';
+        groups[date].forEach(function(n) {
+          var isUnread = n.time > lastSeen;
+          html +=
+            '<div class="notif-card' + (isUnread ? ' unread' : '') + '">' +
+              '<div class="notif-icon ic-' + n.status + '">' + (sIco[n.status]||'📋') + '</div>' +
+              '<div class="notif-body">' +
+                '<p class="notif-order">Order ' + n.orderNumber + '</p>' +
+                '<p class="notif-msg">' + (sText[n.status]||'Status updated.') + '</p>' +
+                '<span class="notif-badge s-' + n.status + '">' +
+                  n.status.charAt(0).toUpperCase() + n.status.slice(1) +
+                '</span>' +
+                '<p class="notif-time">' +
+                  new Date(n.time).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) +
+                '</p>' +
+              '</div>' +
+            '</div>';
+        });
+      });
+      html += '</div>';
+      container.innerHTML = html;
+
+      /* Mark all as seen */
+      localStorage.setItem('notifLastSeen', Date.now());
+    }
+
+    function clearAll() {
+      if (!confirm('Clear all notifications?')) return;
+      localStorage.removeItem('orderNotifs');
+      localStorage.removeItem('notifLastSeen');
+      render();
+    }
+
+    render();
+  </script>
+
+</body>
+</html>

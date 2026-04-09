@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grocery Mart - My Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/profile.css"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="top-navbar">
+    <a href="index.html" class="logo">🛒 Grocery <strong>Mart</strong></a>
+    <div class="nav-right">
+      <a href="index.html" class="nav-link">🏠 Home</a>
+      <a href="cart.html"  class="nav-link">🛒 Cart</a>
+      <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
+    </div>
+  </header>
+
+  <main class="profile-page">
+
+    <!-- SIDEBAR -->
+    <aside class="profile-sidebar">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar" id="profileAvatar">👤</div>
+        <p class="profile-username" id="profileUsername">Loading...</p>
+        <p class="profile-email"    id="profileEmail">-</p>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="snav-btn active" onclick="showTab('orders', this)">📦 My Orders</button>
+        <button class="snav-btn"        onclick="showTab('addresses', this)">📍 My Addresses</button>
+        <button class="snav-btn"        onclick="showTab('account', this)">👤 Account Details</button>
+      </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="profile-content">
+
+      <!-- ── TAB 1: MY ORDERS ── -->
+      <div class="tab-panel active" id="tab-orders">
+        <h2 class="tab-title">My Orders</h2>
+
+        <div id="ordersList"></div>
+        <div id="noOrders" class="empty-state" style="display:none;">
+          <div class="empty-icon">📦</div>
+          <h3>No orders yet!</h3>
+          <p>You haven't placed any orders. Start shopping now.</p>
+          <a href="index.html" class="btn-start-shop">Browse Products</a>
+        </div>
+      </div>
+
+      <!-- ── TAB 2: MY ADDRESSES ── -->
+      <div class="tab-panel" id="tab-addresses">
+        <h2 class="tab-title">My Saved Addresses</h2>
+        <div id="addressesList"></div>
+        <div id="noAddresses" class="empty-state" style="display:none;">
+          <div class="empty-icon">📍</div>
+          <h3>No saved addresses</h3>
+          <p>Add addresses from the checkout page.</p>
+        </div>
+      </div>
+
+      <!-- ── TAB 3: ACCOUNT DETAILS ── -->
+      <div class="tab-panel" id="tab-account">
+        <h2 class="tab-title">Account Details</h2>
+        <div class="account-card">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="accName" placeholder="Your full name"/>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="accEmail" placeholder="Email address" readonly/>
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" id="accPhone" placeholder="10-digit phone number"/>
+          </div>
+          <div class="form-group">
+            <label>New Password (leave blank to keep current)</label>
+            <input type="password" id="accPassword" placeholder="New password"/>
+          </div>
+          <button class="btn-save-acc" onclick="saveAccount()">Save Changes</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ORDER DETAIL MODAL -->
+  <div class="modal-overlay" id="orderDetailModal" onclick="closeOrderModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <h3 id="modalOrderId">Order Details</h3>
+        <button class="modal-close" onclick="closeOrderModal()">✕</button>
+      </div>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    /* ── GUARD ── */
+    /* Clear stale login redirect */
+    localStorage.removeItem('redirectAfterLogin');
+
+    var userEmail = localStorage.getItem('loggedInUser');
+    var token     = localStorage.getItem('token');
+    if (!userEmail) { alert('Please log in.'); window.location.href = 'login.html'; }
+
+    var API = 'http://localhost:5000';
+
+    /* ── LOAD PROFILE FROM API ── */
+    function loadProfile() {
+      /* Show from localStorage immediately */
+      var name  = localStorage.getItem('chkName')  || userEmail;
+      var phone = localStorage.getItem('chkPhone') || '';
+      document.getElementById('profileUsername').textContent = name;
+      document.getElementById('profileEmail').textContent    = userEmail;
+      document.getElementById('accName').value  = name;
+      document.getElementById('accEmail').value = userEmail;
+      document.getElementById('accPhone').value = phone;
+      var avatar = document.getElementById('profileAvatar');
+      if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+
+      /* Then fetch real data from API */
+      fetch(API + '/api/user/profile', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (!data.success || !data.user) return;
+        var u = data.user;
+        document.getElementById('profileUsername').textContent = u.name;
+        document.getElementById('profileEmail').textContent    = u.email;
+        document.getElementById('accName').value  = u.name;
+        document.getElementById('accEmail').value = u.email;
+        document.getElementById('accPhone').value = u.phone || '';
+        if (avatar) avatar.textContent = u.name.charAt(0).toUpperCase();
+        localStorage.setItem('loggedInUser', u.name);
+        localStorage.setItem('chkName',  u.name);
+        localStorage.setItem('chkPhone', u.phone || '');
+      })
+      .catch(function() { /* Keep localStorage values */ });
+    }
+
+    /* ── SAVE ACCOUNT ── */
+    function saveAccount() {
+      var name     = document.getElementById('accName').value.trim();
+      var phone    = document.getElementById('accPhone').value.trim();
+      var password = document.getElementById('accPassword').value.trim();
+      if (!name) { alert('Name cannot be empty.'); return; }
+
+      var body = { name: name, phone: phone };
+      if (password) body.password = password;
+
+      fetch(API + '/api/user/profile', {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body:    JSON.stringify(body)
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) {
+          localStorage.setItem('loggedInUser', name);
+          localStorage.setItem('chkName',  name);
+          localStorage.setItem('chkPhone', phone);
+          document.getElementById('profileUsername').textContent = name;
+          var avatar = document.getElementById('profileAvatar');
+          if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+          document.getElementById('accPassword').value = '';
+          alert('✅ Account updated successfully!');
+        } else {
+          alert('❌ ' + (data.message || 'Failed to update.'));
+        }
+      })
+      .catch(function() {
+        /* Fallback to localStorage */
+        localStorage.setItem('chkName',  name);
+        localStorage.setItem('chkPhone', phone);
+        alert('✅ Account updated!');
+      });
+    }
+
+    /* ── TAB SWITCHER ── */
+    function showTab(tabName, btn) {
+      document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+      document.querySelectorAll('.snav-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.getElementById('tab-' + tabName).classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    /* ── LOAD ORDERS FROM API ── */
+    var allOrders = [];
+
+    function loadOrdersFromAPI() {
+      var list = document.getElementById('ordersList');
+      var none = document.getElementById('noOrders');
+      list.innerHTML = '<p style="padding:20px;color:#aaa;font-size:14px;">Loading orders...</p>';
+
+      fetch(API + '/api/orders/mine', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (!data.success) {
+          list.innerHTML = '';
+          none.style.display = 'flex';
+          return;
+        }
+        allOrders = data.orders;
+        renderOrders(allOrders);
+      })
+      .catch(function() {
+        /* Fallback to localStorage if API unavailable */
+        allOrders = JSON.parse(localStorage.getItem('orders_' + userEmail) || '[]');
+        renderOrders(allOrders);
+      });
+    }
+
+    function filterOrders(status, btn) {
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      if (btn) btn.classList.add('active');
+      var filtered = status === 'all' ? allOrders :
+        allOrders.filter(function(o) { return o.status === status; });
+      renderOrders(filtered);
+    }
+
+    function renderOrders(orders) {
+      var list = document.getElementById('ordersList');
+      var none = document.getElementById('noOrders');
+      if (orders.length === 0) {
+        list.innerHTML = ''; none.style.display = 'flex'; return;
+      }
+      none.style.display = 'none';
+
+      var statusColors = { confirmed:'#e3f2fd:#1565c0', packed:'#fff8e1:#f57f17',
+                           dispatched:'#fff3e0:#e65100', delivered:'#e8f5e9:#2d6a4f' };
+      var statusLabels = { confirmed:'✅ Confirmed', packed:'📦 Packed',
+                           dispatched:'🚚 Out for Delivery', delivered:'🎉 Delivered' };
+
+      var html = '';
+      orders.forEach(function(o, idx) {
+        var colors = (statusColors[o.status] || '#f5f5f5:#888').split(':');
+        var bg     = colors[0]; var tc = colors[1];
+        var label  = statusLabels[o.status] || o.status;
+        var items  = (o.items||[]).slice(0,3);
+        /* Use index to find order reliably instead of ID type mismatch */
+        var orderId = o.order_number || o.id;
+
+        html +=
+          '<div class="order-card">' +
+            '<div class="order-card-head">' +
+              '<div>' +
+                '<p class="order-id">' + orderId + '</p>' +
+                '<p class="order-date">' + (o.date || (o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN') : '')) + '</p>' +
+              '</div>' +
+              '<span class="order-status-badge" style="background:' + bg + ';color:' + tc + '">' + label + '</span>' +
+            '</div>' +
+            '<div class="order-imgs">' +
+              items.map(function(item) {
+                /* Support both image_url (from API) and img (from localStorage) */
+                var imgSrc = item.image_url || item.img || '';
+                return '<img src="' + imgSrc + '" class="order-thumb" alt="' + item.name + '" title="' + item.name + '" onerror="this.style.display=\'none\'"/>';
+              }).join('') +
+              ((o.items||[]).length > 3 ? '<div class="order-thumb-more">+' + ((o.items||[]).length-3) + '</div>' : '') +
+            '</div>' +
+            '<div class="order-card-foot">' +
+              '<div>' +
+                '<p class="order-items-count">' + (o.items||[]).length + ' item(s) · ' + (o.payment_method || o.payment || '') + '</p>' +
+                '<p class="order-total">₹' + o.total + '</p>' +
+              '</div>' +
+              '<button class="btn-view-order" onclick="viewOrder(' + idx + ')">View Details</button>' +
+            '</div>' +
+          '</div>';
+      });
+      list.innerHTML = html;
+    }
+
+    /* ── VIEW ORDER DETAIL ── */
+    function viewOrder(idx) {
+      var o = allOrders[idx];
+      if (!o) return;
+
+      var orderId = o.order_number || o.id;
+      document.getElementById('modalOrderId').textContent = 'Order ' + orderId;
+
+      var statusOrder = ['confirmed','packed','dispatched','delivered'];
+      var curIdx      = statusOrder.indexOf(o.status);
+
+      var stepLabels = ['Order Confirmed','Order Packed','Out for Delivery','Delivered'];
+      var trackHtml  = '<div class="modal-track">';
+      stepLabels.forEach(function(label, i) {
+        var isDone    = i < curIdx || (i === 0);
+        var isCurrent = i === Math.max(curIdx, 0);
+        trackHtml +=
+          '<div class="mtrack-step">' +
+            '<div class="mtrack-dot ' + (isDone?'done':isCurrent?'current':'') + '">' + (isDone?'✓':(i+1)) + '</div>' +
+            (i < stepLabels.length-1 ? '<div class="mtrack-line ' + (isDone?'done':'') + '"></div>' : '') +
+            '<div class="mtrack-info">' +
+              '<p class="mtrack-label ' + (isDone?'done':isCurrent?'current':'') + '">' + label + '</p>' +
+              '<p class="mtrack-time">' + (isDone ? 'Completed' : 'Pending') + '</p>' +
+            '</div>' +
+          '</div>';
+      });
+      trackHtml += '</div>';
+
+      var itemsHtml = '<div class="modal-items">';
+      (o.items||[]).forEach(function(item) {
+        /* Support both image_url (API) and img (localStorage) */
+        var imgSrc = item.image_url || item.img || '';
+        itemsHtml +=
+          '<div class="modal-item-row">' +
+            '<img src="' + imgSrc + '" class="mi-img" alt="' + item.name + '" onerror="this.style.display=\'none\'"/>' +
+            '<div class="mi-info"><p class="mi-name">' + item.name + '</p>' +
+              '<p class="mi-qty">Qty: ' + item.qty + ' × ₹' + item.price + '</p></div>' +
+            '<p class="mi-price">₹' + (item.price * item.qty) + '</p>' +
+          '</div>';
+      });
+      itemsHtml += '</div>';
+
+      var address  = o.delivery_address || o.address || '-';
+      var payment  = o.payment_method   || o.payment  || '-';
+
+      document.getElementById('modalContent').innerHTML =
+        trackHtml + itemsHtml +
+        '<div class="modal-addr-row">' +
+          '<p class="modal-lbl">📍 Delivery Address</p>' +
+          '<p class="modal-val">' + address + '</p>' +
+        '</div>' +
+        '<div class="modal-addr-row">' +
+          '<p class="modal-lbl">💳 Payment</p>' +
+          '<p class="modal-val">' + payment + '</p>' +
+        '</div>' +
+        '<div class="modal-total-row">Total Paid: <strong>₹' + o.total + '</strong></div>';
+
+      document.getElementById('orderDetailModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeOrderModal() {
+      document.getElementById('orderDetailModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    /* ── REORDER ── */
+    function reorder(id) {
+      var o = allOrders.find(function(x) { return x.id === id; });
+      if (!o) return;
+      localStorage.setItem('cartItems', JSON.stringify(o.items));
+      alert('Items added to cart! Redirecting...');
+      window.location.href = 'cart.html';
+    }
+
+    /* ── LOAD ADDRESSES ── */
+    /* ── LOAD ADDRESSES FROM API ── */
+    function loadAddresses() {
+      var list = document.getElementById('addressesList');
+      var none = document.getElementById('noAddresses');
+      list.innerHTML = '<p style="color:#aaa;font-size:13px;padding:10px;">Loading...</p>';
+
+      fetch(API + '/api/user/addresses', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (!data.success || !data.addresses || data.addresses.length === 0) {
+          list.innerHTML = '';
+          none.style.display = 'flex';
+          return;
+        }
+        none.style.display = 'none';
+        var icons = { Home:'🏠', Work:'💼', Other:'📍' };
+        list.innerHTML = data.addresses.map(function(a) {
+          var fullAddr = [a.flat, a.street, a.city, a.pincode, a.state].filter(Boolean).join(', ');
+          return '<div class="addr-card">' +
+            '<div class="addr-card-left">' +
+              '<span class="addr-icon">' + (icons[a.type]||'📍') + '</span>' +
+              '<div>' +
+                '<p class="addr-type">' + (a.type||'Home') +
+                  (a.is_default ? ' &nbsp;<span style="background:#e8f5e9;color:#2d6a4f;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;">Default</span>' : '') +
+                '</p>' +
+                '<p class="addr-text">' + (a.name ? '<strong>' + a.name + '</strong> · ' : '') + fullAddr + '</p>' +
+                (a.phone ? '<p style="font-size:12px;color:#888;margin-top:2px;">📞 ' + a.phone + '</p>' : '') +
+              '</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+              (!a.is_default ? '<button class="btn-del-addr" style="background:#e8f5e9;color:#2d6a4f;border-color:#c8e6c9;" onclick="setDefaultAddr(' + a.id + ')">⭐ Set Default</button>' : '') +
+              '<button class="btn-del-addr" onclick="deleteAddr(' + a.id + ')">🗑 Remove</button>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      })
+      .catch(function() {
+        /* Fallback to localStorage */
+        var saved = JSON.parse(localStorage.getItem('addr_' + userEmail) || '[]');
+        var none  = document.getElementById('noAddresses');
+        if (saved.length === 0) { list.innerHTML = ''; none.style.display = 'flex'; return; }
+        none.style.display = 'none';
+        var icons = { Home:'🏠', Work:'💼', Other:'📍' };
+        list.innerHTML = saved.map(function(a, i) {
+          return '<div class="addr-card">' +
+            '<div class="addr-card-left">' +
+              '<span class="addr-icon">' + (icons[a.type]||'📍') + '</span>' +
+              '<div><p class="addr-type">' + a.type + '</p>' +
+                '<p class="addr-text">' + a.address + '</p></div>' +
+            '</div>' +
+            '<button class="btn-del-addr" onclick="deleteAddrLocal(' + i + ')">🗑 Remove</button>' +
+          '</div>';
+        }).join('');
+      });
+    }
+
+    function deleteAddr(id) {
+      if (!confirm('Remove this address?')) return;
+      fetch(API + '/api/user/addresses/' + id, {
+        method:  'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) loadAddresses();
+        else alert('❌ Failed to delete address.');
+      })
+      .catch(function() { alert('❌ Server error.'); });
+    }
+
+    function setDefaultAddr(id) {
+      fetch(API + '/api/user/addresses/' + id + '/default', {
+        method:  'PUT',
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) loadAddresses();
+        else alert('❌ Failed to set default.');
+      });
+    }
+
+    function deleteAddrLocal(i) {
+      if (!confirm('Remove this address?')) return;
+      var saved = JSON.parse(localStorage.getItem('addr_' + userEmail) || '[]');
+      saved.splice(i, 1);
+      localStorage.setItem('addr_' + userEmail, JSON.stringify(saved));
+      loadAddresses();
+    }
+
+    /* ── LOGOUT ── */
+    function handleLogout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('isAdmin');
+        localStorage.removeItem('token');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userId');
+        window.location.href = 'login.html';
+      }
+    }
+
+    /* ── INIT ── */
+    loadProfile();
+    loadOrdersFromAPI();   /* load real orders from database */
+    loadAddresses();
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeOrderModal();
+    });
+  </script>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="site-footer">
+    <div class="sf-inner">
+      <div class="sf-col">
+        <span class="sf-logo">🛒 Grocery <strong>Mart</strong></span>
+        <p class="sf-desc">Fresh products delivered fast to your door.</p>
+      </div>
+      <div class="sf-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">🏠 Home</a></li>
+          <li><a href="cart.html">🛒 My Cart</a></li>
+          <li><a href="profile.html">📦 My Orders</a></li>
+          <li><a href="search.html">🔍 Search</a></li>
+        </ul>
+      </div>
+      <div class="sf-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="profile.html">Track Order</a></li>
+          <li><a href="#">Returns &amp; Refunds</a></li>
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="sf-col">
+        <h4>Account</h4>
+        <ul>
+          <li><a href="login.html">Login / Sign Up</a></li>
+          <li><a href="profile.html">My Profile</a></li>
+          <li><a href="profile.html">Saved Addresses</a></li>
+          <li><a href="admin.html">Admin Panel</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="sf-bottom">
+      <p>© 2025 Grocery Mart. All rights reserved.</p>
+      <div class="sf-pay">
+        <span>📱 UPI</span>
+        <span>💵 COD</span>
+        <span>💳 Card</span>
+      </div>
+    </div>
+  </footer>
+
+
+  <script>
+
+    /* ── SYNC CART BADGE from localStorage ── */
+    function syncCartBadge() {
+      var items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      var total = items.reduce(function(s, i) { return s + (i.qty || 1); }, 0);
+      /* Update all badge elements on page */
+      document.querySelectorAll('.cart-count-badge, #cartBadge').forEach(function(el) {
+        el.textContent = total || 0;
+      });
+    }
+    syncCartBadge();
+  </script>
+
+</body>
+</html>

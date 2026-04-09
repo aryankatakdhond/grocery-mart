@@ -1,0 +1,7 @@
+# 1. Create a .gitignore file in your project root
+# Add these lines:
+node_modules/
+.env
+*.log
+*.pem
+.DS_Store

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grocery Mart - Page Not Found</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Poppins',sans-serif;
+      background:#f4f6f8; color:#222;
+      min-height:100vh; display:flex; flex-direction:column;
+    }
+    a { text-decoration:none; color:inherit; }
+    header {
+      background:#fff; border-bottom:1px solid #eee;
+      padding:14px 28px; display:flex; align-items:center; justify-content:space-between;
+    }
+    .logo { font-size:20px; font-weight:700; color:#2d6a4f; }
+    .logo strong { color:#e67e22; }
+    main {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      padding:40px 20px;
+    }
+    .error-box { text-align:center; max-width:480px; }
+    .error-illustration { font-size:80px; margin-bottom:8px; animation:bounce 2s ease-in-out infinite; }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)} }
+    .error-code {
+      font-size:96px; font-weight:800; color:#2d6a4f;
+      line-height:1; letter-spacing:-4px; margin-bottom:8px;
+      opacity:0.15;
+    }
+    .error-title { font-size:26px; font-weight:800; color:#1a1a1a; margin-bottom:10px; }
+    .error-sub   { font-size:15px; color:#777; line-height:1.7; margin-bottom:32px; }
+    .error-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .btn-home {
+      background:#2d6a4f; color:#fff; padding:13px 28px;
+      border-radius:12px; font-size:15px; font-weight:700;
+      transition:background 0.2s, transform 0.15s;
+    }
+    .btn-home:hover { background:#52b788; transform:translateY(-2px); }
+    .btn-back {
+      background:#fff; color:#2d6a4f; border:2px solid #2d6a4f;
+      padding:12px 24px; border-radius:12px; font-size:15px; font-weight:700;
+      cursor:pointer; transition:background 0.2s;
+    }
+    .btn-back:hover { background:#f0f7f0; }
+    .search-mini {
+      display:flex; margin:28px auto 0; max-width:360px;
+      background:#fff; border:1.5px solid #ddd; border-radius:10px; overflow:hidden;
+    }
+    .search-mini input {
+      flex:1; border:none; outline:none; padding:11px 14px;
+      font-size:14px; font-family:'Poppins',sans-serif; color:#333;
+    }
+    .search-mini button {
+      background:#2d6a4f; color:#fff; border:none;
+      padding:11px 18px; font-size:14px; font-weight:600;
+      font-family:'Poppins',sans-serif; cursor:pointer;
+      transition:background 0.2s;
+    }
+    .search-mini button:hover { background:#52b788; }
+    .popular-links { margin-top:28px; }
+    .popular-links p { font-size:13px; color:#aaa; margin-bottom:10px; }
+    .popular-links-row { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+    .pop-link {
+      background:#fff; border:1.5px solid #e0e0e0; color:#444;
+      padding:6px 14px; border-radius:100px; font-size:13px; font-weight:500;
+      transition:all 0.2s;
+    }
+    .pop-link:hover { border-color:#2d6a4f; color:#2d6a4f; background:#f0f7f0; }
+    footer {
+      text-align:center; padding:20px;
+      font-size:12px; color:#aaa; border-top:1px solid #eee; background:#fff;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo">🛒 Grocery <strong>Mart</strong></a>
+    <a href="index.html" style="font-size:13px;color:#2d6a4f;font-weight:600;">← Go Home</a>
+  </header>
+
+  <main>
+    <div class="error-box">
+      <div class="error-illustration">🥦</div>
+      <div class="error-code">404</div>
+      <h1 class="error-title">Oops! Page Not Found</h1>
+      <p class="error-sub">
+        Looks like this page got lost in the produce section!<br/>
+        The page you're looking for doesn't exist or has been moved.
+      </p>
+      <div class="error-actions">
+        <a href="index.html"    class="btn-home">🏠 Go to Home</a>
+        <button class="btn-back" onclick="history.back()">← Go Back</button>
+      </div>
+      <div class="search-mini">
+        <input type="text" id="s404" placeholder="Search for products..."/>
+        <button onclick="var q=document.getElementById('s404').value.trim(); if(q) window.location.href='search.html?q='+encodeURIComponent(q)">Search</button>
+      </div>
+      <div class="popular-links">
+        <p>Or browse popular categories:</p>
+        <div class="popular-links-row">
+          <a href="search.html?q=fruits"     class="pop-link">🍎 Fruits</a>
+          <a href="search.html?q=vegetables" class="pop-link">🥦 Vegetables</a>
+          <a href="search.html?q=dairy"      class="pop-link">🥛 Dairy</a>
+          <a href="search.html?q=bakery"     class="pop-link">🍞 Bakery</a>
+          <a href="cart.html"                class="pop-link">🛒 My Cart</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>© 2025 Grocery Mart. All rights reserved.</footer>
+</body>
+</html>

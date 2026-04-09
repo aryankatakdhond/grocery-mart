@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grocery Mart - Order Confirmed!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/confirmation.css"/>
+</head>
+<body>
+  <header class="top-navbar">
+    <a href="index.html" class="logo">🛒 Grocery <strong>Mart</strong></a>
+    <div class="steps-bar">
+      <div class="step done"><span class="step-num">✓</span><span class="step-label">Cart</span></div>
+      <div class="step-line active"></div>
+      <div class="step done"><span class="step-num">✓</span><span class="step-label">Checkout</span></div>
+      <div class="step-line active"></div>
+      <div class="step active"><span class="step-num">3</span><span class="step-label">Confirmation</span></div>
+    </div>
+    <a href="index.html" class="back-link">Continue Shopping →</a>
+  </header>
+
+  <main class="confirm-page">
+    <!-- SUCCESS BANNER -->
+    <div class="success-banner">
+      <div class="success-circle">✓</div>
+      <h1 class="success-title">Order Placed Successfully! 🎉</h1>
+      <p class="success-sub">Thank you for shopping with Grocery Mart. Your order is confirmed.</p>
+      <div class="order-id-badge">Order ID: <strong id="displayOrderId">-</strong></div>
+    </div>
+
+    <div class="confirm-grid">
+      <!-- LEFT -->
+      <div class="confirm-left">
+
+        <!-- STATUS TRACKER -->
+        <div class="confirm-card">
+          <h3 class="card-title">📦 Order Status</h3>
+          <div class="status-track" id="statusTrack"></div>
+          <div class="est-delivery">🚚 Estimated Delivery: <strong id="estDelivery"></strong></div>
+        </div>
+
+        <!-- ITEMS -->
+        <div class="confirm-card">
+          <h3 class="card-title">🛒 Items Ordered</h3>
+          <div id="orderItemsList"></div>
+        </div>
+
+        <!-- ADDRESS -->
+        <div class="confirm-card">
+          <h3 class="card-title">📍 Delivery Address</h3>
+          <div class="confirm-addr-row">
+            <span class="addr-tag" id="cAddrTag">Home</span>
+            <div>
+              <p class="addr-name" id="cAddrName">-</p>
+              <p class="addr-full" id="cAddrFull">-</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT -->
+      <div class="confirm-right">
+
+        <!-- PAYMENT -->
+        <div class="confirm-card">
+          <h3 class="card-title">💳 Payment Details</h3>
+          <div class="detail-row"><span>Method</span><span id="cPayMethod">-</span></div>
+          <div class="detail-row">
+            <span>Status</span>
+            <span id="cPayStatus" class="pay-badge">-</span>
+          </div>
+        </div>
+
+        <!-- BILL -->
+        <div class="confirm-card">
+          <h3 class="card-title">🧾 Bill Summary</h3>
+          <div id="billRows"></div>
+          <div class="bill-total">
+            <span>Total</span>
+            <span id="cTotal" class="bill-total-val">₹0</span>
+          </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="confirm-actions">
+          <a href="profile.html" class="btn-track">📦 Track Order</a>
+          <a href="index.html"   class="btn-shop">🛒 Shop Again</a>
+        </div>
+
+        <!-- FEEDBACK -->
+        <div class="confirm-card">
+          <h3 class="card-title">⭐ Rate Your Experience</h3>
+          <div class="star-row" id="starRow">
+            <span class="star" onclick="rateStar(1)">★</span>
+            <span class="star" onclick="rateStar(2)">★</span>
+            <span class="star" onclick="rateStar(3)">★</span>
+            <span class="star" onclick="rateStar(4)">★</span>
+            <span class="star" onclick="rateStar(5)">★</span>
+          </div>
+          <textarea id="feedbackText" class="feedback-area" placeholder="Tell us about your experience..."></textarea>
+          <button class="btn-feedback" onclick="submitFeedback()">Submit Feedback</button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    var API       = 'http://localhost:5000';
+    var lastOrder = JSON.parse(localStorage.getItem('lastOrder') || 'null');
+
+    if (!lastOrder) {
+      document.querySelector('.confirm-page').innerHTML =
+        '<div style="text-align:center;padding:80px 20px;">' +
+        '<div style="font-size:64px;margin-bottom:20px;">🛒</div>' +
+        '<h2 style="color:#333;margin-bottom:10px;">No recent order found</h2>' +
+        '<p style="color:#aaa;margin-bottom:20px;">Place an order first!</p>' +
+        '<a href="index.html" style="color:#2d6a4f;font-weight:700;font-size:15px;">← Go to Home</a></div>';
+    } else {
+      renderConfirmation(lastOrder);
+    }
+
+    function renderConfirmation(o) {
+      /* Order ID */
+      document.getElementById('displayOrderId').textContent = o.id || o.order_number || 'ORD' + Date.now();
+
+      /* Status tracker */
+      var statusSteps = [
+        { label:'Order Confirmed',  done: true,  time: o.date || new Date().toLocaleString() },
+        { label:'Order Packed',     done: false, time: '' },
+        { label:'Out for Delivery', done: false, time: '' },
+        { label:'Delivered',        done: false, time: '' }
+      ];
+
+      /* If order has status from DB */
+      var status = o.status || 'confirmed';
+      var statusOrder = ['confirmed','packed','dispatched','delivered'];
+      var curIdx = statusOrder.indexOf(status);
+      statusSteps.forEach(function(step, i) {
+        step.done = i < curIdx || (i === 0 && curIdx >= 0);
+      });
+
+      var html = '';
+      statusSteps.forEach(function(s, i) {
+        var isDone    = s.done;
+        var isCurrent = i === Math.max(curIdx, 0);
+        html +=
+          '<div class="track-step">' +
+            '<div class="track-col">' +
+              '<div class="track-dot ' + (isDone ? 'done' : isCurrent ? 'current' : '') + '">' +
+                (isDone ? '✓' : (i+1)) +
+              '</div>' +
+              (i < statusSteps.length-1 ? '<div class="track-line ' + (isDone ? 'done' : '') + '"></div>' : '') +
+            '</div>' +
+            '<div class="track-info">' +
+              '<p class="track-label ' + (isDone ? 'done' : isCurrent ? 'current' : '') + '">' + s.label + '</p>' +
+              '<p class="track-time">' + (s.time || (isDone ? 'Completed' : 'Pending')) + '</p>' +
+            '</div>' +
+          '</div>';
+      });
+      document.getElementById('statusTrack').innerHTML = html;
+
+      /* Estimated delivery */
+      var est = new Date();
+      est.setHours(est.getHours() + 2);
+      document.getElementById('estDelivery').textContent =
+        est.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + ' today';
+
+      /* Items */
+      var items     = o.items || [];
+      var itemsHtml = '';
+      var subtotal  = 0;
+
+      items.forEach(function(item) {
+        var lineTotal = (item.price * item.qty);
+        subtotal += lineTotal;
+        itemsHtml +=
+          '<div class="order-item-row">' +
+            '<img src="' + (item.img || item.image_url || '') + '" class="oi-img" alt="' + item.name + '"/>' +
+            '<div class="oi-info">' +
+              '<p class="oi-name">' + item.name + '</p>' +
+              '<p class="oi-qty">Qty: ' + item.qty + ' × ₹' + item.price + '</p>' +
+            '</div>' +
+            '<p class="oi-total">₹' + lineTotal + '</p>' +
+          '</div>';
+      });
+
+      var itemsEl = document.getElementById('orderItemsList');
+      if (itemsEl) itemsEl.innerHTML = itemsHtml || '<p style="color:#aaa;padding:10px;">No items</p>';
+
+      /* Address */
+      var setEl = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+      setEl('cAddrTag',  o.addrType || localStorage.getItem('deliveryType') || 'Home');
+      setEl('cAddrName', o.customer || localStorage.getItem('chkName') || localStorage.getItem('loggedInUser') || '');
+      setEl('cAddrFull', o.address  || localStorage.getItem('deliveryAddress') || '-');
+
+      /* Payment */
+      setEl('cPayMethod', o.payment || 'Cash on Delivery');
+      var badge = document.getElementById('cPayStatus');
+      if (badge) {
+        if ((o.payment || '').includes('Cash')) {
+          badge.textContent = 'Pay on Delivery';
+          badge.className   = 'pay-badge cod-badge';
+        } else {
+          badge.textContent = 'Paid ✅';
+          badge.className   = 'pay-badge paid-badge';
+        }
+      }
+
+      /* Bill */
+      var delivery = subtotal >= 999 ? 0 : 49;
+      var tax      = Math.round(subtotal * 0.05);
+      var total    = subtotal + delivery + tax;
+
+      if (o.total)    total    = parseInt((o.total    + '').replace('₹','')) || total;
+      if (o.subtotal) subtotal = parseInt((o.subtotal + '').replace('₹','')) || subtotal;
+
+      var billEl = document.getElementById('billRows');
+      if (billEl) {
+        billEl.innerHTML =
+          '<div class="bill-row"><span>Subtotal</span><span>₹' + subtotal + '</span></div>' +
+          '<div class="bill-row"><span>Delivery</span><span>' + (delivery === 0 ? 'FREE 🎉' : '₹' + delivery) + '</span></div>' +
+          '<div class="bill-row"><span>Tax (5%)</span><span>₹' + tax + '</span></div>';
+      }
+      setEl('cTotal', '₹' + total);
+    }
+    var selectedStar = 0;
+    function rateStar(n) {
+      selectedStar = n;
+      document.querySelectorAll('.star').forEach(function(s,i){ s.classList.toggle('active', i<n); });
+    }
+    function submitFeedback() {
+      if (!selectedStar) { alert('Please select a star rating.'); return; }
+      alert('Thanks for your feedback! You rated us ' + selectedStar + '/5 ⭐');
+      document.getElementById('feedbackText').value = '';
+      document.querySelectorAll('.star').forEach(function(s){ s.classList.remove('active'); });
+    }
+  </script>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="site-footer">
+    <div class="sf-inner">
+      <div class="sf-col">
+        <span class="sf-logo">🛒 Grocery <strong>Mart</strong></span>
+        <p class="sf-desc">Fresh products delivered fast to your door.</p>
+      </div>
+      <div class="sf-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">🏠 Home</a></li>
+          <li><a href="cart.html">🛒 My Cart</a></li>
+          <li><a href="profile.html">📦 My Orders</a></li>
+          <li><a href="search.html">🔍 Search</a></li>
+        </ul>
+      </div>
+      <div class="sf-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="profile.html">Track Order</a></li>
+          <li><a href="#">Returns &amp; Refunds</a></li>
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="sf-col">
+        <h4>Account</h4>
+        <ul>
+          <li><a href="login.html">Login / Sign Up</a></li>
+          <li><a href="profile.html">My Profile</a></li>
+          <li><a href="profile.html">Saved Addresses</a></li>
+          <li><a href="admin.html">Admin Panel</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="sf-bottom">
+      <p>© 2025 Grocery Mart. All rights reserved.</p>
+      <div class="sf-pay">
+        <span>📱 UPI</span>
+        <span>💵 COD</span>
+        <span>💳 Card</span>
+      </div>
+    </div>
+  </footer>
+
+
+  <script>
+
+    /* ── SYNC CART BADGE from localStorage ── */
+    function syncCartBadge() {
+      var items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      var total = items.reduce(function(s, i) { return s + (i.qty || 1); }, 0);
+      /* Update all badge elements on page */
+      document.querySelectorAll('.cart-count-badge, #cartBadge').forEach(function(el) {
+        el.textContent = total || 0;
+      });
+    }
+    syncCartBadge();
+  </script>
+
+</body>
+</html>

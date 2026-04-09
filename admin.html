@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grocery Mart - Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════
+       SIDEBAR
+  ══════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-logo">
+      <span>🛒</span>
+      <span class="logo-text">Grocery <strong>Mart</strong></span>
+    </div>
+
+    <div class="admin-info">
+      <div class="admin-avatar">🔐</div>
+      <div>
+        <p class="admin-name">Admin Panel</p>
+        <p class="admin-role" id="adminEmailDisplay"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0d6c696064634d6a7f626e687f74606c7f79236e6260">[email&#160;protected]</a></p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <p class="nav-section-label">MAIN</p>
+
+      <a href="#" class="nav-item active" onclick="showSection('dashboard', this)">
+        <span class="nav-icon">📊</span><span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('products', this)">
+        <span class="nav-icon">🥦</span><span>Products</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('running', this)">
+        <span class="nav-icon">🔥</span><span>Running Orders</span>
+        <span class="nav-badge" id="runningBadge" style="background:#e65100;">0</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('orders', this)">
+        <span class="nav-icon">📦</span><span>All Orders</span>
+        <span class="nav-badge" id="ordersBadge">0</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('customers', this)">
+        <span class="nav-icon">👥</span><span>Customers</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('coupons', this)">
+        <span class="nav-icon">🎟️</span><span>Coupons</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('categories', this)">
+        <span class="nav-icon">📂</span><span>Categories</span>
+      </a>
+
+      <p class="nav-section-label">SETTINGS</p>
+
+      <a href="#" class="nav-item" onclick="showSection('settings', this)">
+        <span class="nav-icon">⚙️</span><span>Settings</span>
+      </a>
+      <a href="index.html" class="nav-item">
+        <span class="nav-icon">🏠</span><span>View Store</span>
+      </a>
+      <a href="#" class="nav-item logout" onclick="handleLogout()">
+        <span class="nav-icon">🚪</span><span>Logout</span>
+      </a>
+
+    </nav>
+  </aside>
+
+
+  <!-- ══════════════════════════════════════
+       MAIN AREA
+  ══════════════════════════════════════ -->
+  <div class="main-area">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <h1 class="page-title" id="pageTitle">Dashboard</h1>
+      <div class="topbar-right">
+        <span class="topbar-date" id="todayDate"></span>
+
+        <!-- ── TODAY'S SALES BOX ── -->
+        <div class="today-sales-box">
+          <span class="today-sales-label">📅 Today's Sales</span>
+          <span class="today-sales-val" id="todaySales">₹0</span>
+        </div>
+
+        <!-- ── SHOP OPEN / CLOSE TOGGLE ── -->
+        <div class="shop-toggle-wrap">
+          <span class="shop-toggle-label" id="shopStatusLabel">🟢 Shop Open</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="shopToggle" checked onchange="toggleShop()" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="topbar-admin">
+          <span class="topbar-avatar">🔐</span>
+          <span class="topbar-name">Admin</span>
+        </div>
+      </div>
+    </header>
+
+
+    <!-- ══════════════════════════════════════
+         SHOP CLOSED BANNER (shown when shop is closed)
+    ══════════════════════════════════════ -->
+    <div class="shop-closed-banner" id="shopClosedBanner" style="display:none;">
+      🔴 Your store is currently <strong>CLOSED</strong>. Customers cannot place orders.
+      <button onclick="document.getElementById('shopToggle').checked=true; toggleShop()">Reopen Store</button>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         SECTION 1: DASHBOARD
+    ══════════════════════════════════════ -->
+    <section class="section active" id="section-dashboard">
+
+      <!-- Stat Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon green">💰</div>
+          <div class="stat-info">
+            <p class="stat-label">Total Revenue</p>
+            <p class="stat-value" id="dashRevenue">₹0</p>
+            <p class="stat-change positive" id="dashRevenueNote">from orders</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">📦</div>
+          <div class="stat-info">
+            <p class="stat-label">Total Orders</p>
+            <p class="stat-value" id="dashOrders">0</p>
+            <p class="stat-change positive" id="dashOrdersNote">all time</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">👥</div>
+          <div class="stat-info">
+            <p class="stat-label">Total Customers</p>
+            <p class="stat-value" id="dashCustomers">0</p>
+            <p class="stat-change positive" id="dashCustomersNote">registered</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red">🥦</div>
+          <div class="stat-info">
+            <p class="stat-label">Total Products</p>
+            <p class="stat-value" id="dashProducts">0</p>
+            <p class="stat-change" id="dashProductsNote">in catalogue</p>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Recent Orders from DB -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">🕐 Recent Orders</h3>
+          <button class="btn-secondary" onclick="showSection('orders', null)">View All</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Total</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recentOrdersBody">
+            <tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+
+    <!-- ══════════════════════════════════════
+         SECTION 2: PRODUCTS
+    ══════════════════════════════════════ -->
+    <section class="section" id="section-products">
+
+      <div class="section-actions">
+        <h2 class="section-heading">All Products</h2>
+        <button class="btn-primary" onclick="showAddProductForm()">+ Add New Product</button>
+      </div>
+
+      <!-- Add / Edit Product Form -->
+      <div class="form-card" id="addProductForm" style="display:none;">
+        <div class="card-header">
+          <h3 class="card-title" id="productFormTitle">Add New Product</h3>
+          <button class="btn-close" onclick="hideAddProductForm()">✕</button>
+        </div>
+        <input type="hidden" id="prodId" value=""/>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Product Name *</label>
+            <input type="text" id="prodName" placeholder="e.g. Fresh Tomatoes" />
+          </div>
+          <div class="form-group">
+            <label>Category *</label>
+            <select id="prodCategory">
+              <option value="">Select category</option>
+              <option>Fruits</option>
+              <option>Vegetables</option>
+              <option>Dairy</option>
+              <option>Bakery &amp; Pastry</option>
+              <option>Beverages</option>
+              <option>Grocery</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Price (₹) *</label>
+            <input type="number" id="prodPrice" placeholder="e.g. 49" min="0" step="1" />
+          </div>
+          <div class="form-group">
+            <label>Old Price (₹) — for deals</label>
+            <input type="number" id="prodOldPrice" placeholder="e.g. 99" min="0" step="1" />
+          </div>
+          <div class="form-group">
+            <label>Weight / Unit *</label>
+            <input type="text" id="prodWeight" placeholder="e.g. 500g or 1 kg" />
+          </div>
+          <div class="form-group">
+            <label>In Stock</label>
+            <select id="prodStock">
+              <option value="1">Yes — In Stock</option>
+              <option value="0">No — Out of Stock</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Show in Popular</label>
+            <select id="prodFeatured">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Show in Deals</label>
+            <select id="prodDeal">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Image URL *</label>
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <input type="text" id="prodImage" placeholder="https://images.unsplash.com/..." 
+              style="flex:1;" oninput="previewImage(this.value)"/>
+            <img id="prodImagePreview" src="" alt="Preview" 
+              style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1.5px solid #ddd;display:none;flex-shrink:0;"/>
+          </div>
+          <p style="font-size:11px;color:#aaa;margin-top:4px;">
+            💡 Tip: Use <a href="https://images.unsplash.com" target="_blank" style="color:#2d6a4f;">Unsplash</a> for free images. 
+            Copy image address from any website and paste here.
+          </p>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="prodDesc" placeholder="Short product description..." rows="2"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn-secondary" onclick="hideAddProductForm()">Cancel</button>
+          <button class="btn-primary" id="saveProductBtn" onclick="saveProduct()">Save Product</button>
+        </div>
+      </div>
+
+      <!-- Products Table -->
+      <div class="card">
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Emoji</th><th>Name</th><th>Category</th>
+                <th>Price</th><th>Stock</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productsTableBody">
+              <tr data-id="1" data-name="Avocado - Medium" data-cat="Fruits" data-price="8.00" data-stock="142" data-emoji="🥑" data-weight="2 kg">
+                <td class="emoji-cell"><img src="https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=60&h=60&fit=crop" class="prod-thumb" alt="Avocado"/></td><td>Avocado - Medium</td><td>Fruits</td>
+                <td>₹120</td><td>142</td>
+                <td><span class="status delivered">In Stock</span></td>
+                <td>
+                  <button class="btn-edit" onclick="editProduct(this)">✏️ Edit</button>
+                  <button class="btn-delete" onclick="deleteRow(this)">🗑 Delete</button>
+                </td>
+              </tr>
+              <tr data-id="2" data-name="Green Fresh Broccoli" data-cat="Vegetables" data-price="8.00" data-stock="98" data-emoji="🥦" data-weight="2 kg">
+                <td class="emoji-cell"><img src="https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?w=60&h=60&fit=crop" class="prod-thumb" alt="Broccoli"/></td><td>Green Fresh Broccoli</td><td>Vegetables</td>
+                <td>₹120</td><td>98</td>
+                <td><span class="status delivered">In Stock</span></td>
+                <td>
+                  <button class="btn-edit" onclick="editProduct(this)">✏️ Edit</button>
+                  <button class="btn-delete" onclick="deleteRow(this)">🗑 Delete</button>
+                </td>
+              </tr>
+              <tr data-id="3" data-name="Full Cream Milk" data-cat="Dairy" data-price="2.00" data-stock="0" data-emoji="🥛" data-weight="1 litre">
+                <td class="emoji-cell"><img src="https://images.unsplash.com/photo-1550583724-b2692b85b150?w=60&h=60&fit=crop" class="prod-thumb" alt="Milk"/></td><td>Full Cream Milk</td><td>Dairy</td>
+                <td>₹32</td><td>0</td>
+                <td><span class="status cancelled">Out of Stock</span></td>
+                <td>
+                  <button class="btn-edit" onclick="editProduct(this)">✏️ Edit</button>
+                  <button class="btn-delete" onclick="deleteRow(this)">🗑 Delete</button>
+                </td>
+              </tr>
+              <tr data-id="4" data-name="Fresh Red Tomatoes" data-cat="Vegetables" data-price="5.00" data-stock="210" data-emoji="🍅" data-weight="1 kg">
+                <td class="emoji-cell"><img src="https://images.unsplash.com/photo-1546470427-e26264be0b11?w=60&h=60&fit=crop" class="prod-thumb" alt="Tomatoes"/></td><td>Fresh Red Tomatoes</td><td>Vegetables</td>
+                <td>₹40</td><td>210</td>
+                <td><span class="status delivered">In Stock</span></td>
+                <td>
+                  <button class="btn-edit" onclick="editProduct(this)">✏️ Edit</button>
+                  <button class="btn-delete" onclick="deleteRow(this)">🗑 Delete</button>
+                </td>
+              </tr>
+              <tr data-id="5" data-name="Multigrain Bread" data-cat="Bakery &amp; Pastry" data-price="3.00" data-stock="55" data-emoji="🍞" data-weight="400g">
+                <td class="emoji-cell"><img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=60&h=60&fit=crop" class="prod-thumb" alt="Bread"/></td><td>Multigrain Bread</td><td>Bakery &amp; Pastry</td>
+                <td>₹48</td><td>55</td>
+                <td><span class="status delivered">In Stock</span></td>
+                <td>
+                  <button class="btn-edit" onclick="editProduct(this)">✏️ Edit</button>
+                  <button class="btn-delete" onclick="deleteRow(this)">🗑 Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+
+
+    <!-- ══════════════════════════════════════
+         SECTION: RUNNING ORDERS
+    ══════════════════════════════════════ -->
+    <section class="section" id="section-running">
+
+      <div class="section-actions">
+        <h2 class="section-heading">🔥 Running Orders</h2>
+        <button class="btn-secondary" onclick="loadRunningOrders()" style="font-size:13px;">↻ Refresh</button>
+      </div>
+
+      <p style="font-size:13px;color:#888;margin:-8px 0 20px;">
+        Active orders needing attention — confirmed, packed, or out for delivery. Click any card to update status instantly.
+      </p>
+
+      <div id="runningOrdersGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+        <p style="color:#aaa;font-size:14px;padding:20px;">Loading...</p>
+      </div>
+
+    </section>
+
+
+    <!-- ══════════════════════════════════════
+         SECTION 3: ORDERS
+    ══════════════════════════════════════ -->
+    <section class="section" id="section-orders">
+
+      <div class="section-actions">
+        <h2 class="section-heading">All Orders</h2>
+        <button onclick="exportOrdersExcel()" style="background:#217346;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;" id="btnExportOrders"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='16' height='16' style='vertical-align:middle;margin-right:6px;'><path fill='#fff' d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path fill='#a8d5b5' d='M14 2v6h6'/><text x='4' y='21' font-size='11' font-weight='bold' fill='#217346'>X</text></svg>Export Excel</button>
+        <select class="filter-select" onchange="filterOrders(this.value)">
+          <option value="all">All Status</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="packed">Packed</option>
+          <option value="dispatched">Dispatched</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th><th>Customer</th><th>Items</th>
+                <th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+              <tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px;">Loading orders...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══ ORDER DETAIL MODAL ══ -->
+    <div class="modal-overlay" id="adminOrderModal" onclick="closeAdminOrderModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;">
+      <div class="modal-box" onclick="event.stopPropagation()" style="background:#fff;border-radius:16px;max-width:600px;width:90%;margin:40px auto;padding:28px;position:relative;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <h3 style="font-size:18px;font-weight:600;color:#1a2e22;" id="adminModalOrderId">Order Details</h3>
+          <button onclick="closeAdminOrderModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;">✕</button>
+        </div>
+
+        <!-- Order info -->
+        <div id="adminModalContent"></div>
+
+        <!-- Status Update Buttons -->
+        <div style="margin-top:24px;border-top:1px solid #eee;padding-top:20px;">
+          <p style="font-size:13px;font-weight:600;color:#555;margin-bottom:12px;">UPDATE ORDER STATUS</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button onclick="setAdminOrderStatus('confirmed')"  class="status-btn status-btn-confirmed">✅ Confirmed</button>
+            <button onclick="setAdminOrderStatus('packed')"     class="status-btn status-btn-packed">📦 Packed</button>
+            <button onclick="setAdminOrderStatus('dispatched')" class="status-btn status-btn-dispatched">🚚 Dispatched</button>
+            <button onclick="setAdminOrderStatus('delivered')"  class="status-btn status-btn-delivered">🎉 Delivered</button>
+            <button onclick="setAdminOrderStatus('cancelled')"  class="status-btn status-btn-cancelled">❌ Cancelled</button>
+          </div>
+          <p id="adminStatusMsg" style="font-size:13px;color:#2d6a4f;margin-top:10px;display:none;">✅ Status updated!</p>
+        </div>
+      </div>
+    </div>
+
+    <style>
+    .status-btn { padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:opacity 0.2s; }
+    .status-btn:hover { opacity:0.8; }
+    .status-btn-confirmed  { background:#e3f2fd;color:#1565c0; }
+    .status-btn-packed     { background:#fff8e1;color:#f57f17; }
+    .status-btn-dispatched { background:#fff3e0;color:#e65100; }
+    .status-btn-delivered  { background:#e8f5e9;color:#2d6a4f; }
+    .status-btn-cancelled  { background:#fce4ec;color:#c62828; }
+    .status-btn.active     { outline:2px solid currentColor; }
+    </style>
+
+
+    <!-- ══════════════════════════════════════
+         SECTION 4: CUSTOMERS
+    ══════════════════════════════════════ -->
+    <section class="section" id="section-customers">
+
+      <div class="section-actions">
+        <h2 class="section-heading">All Customers</h2>
+        <button onclick="exportCustomersExcel()" style="background:#217346;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;" id="btnExportCustomers"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='16' height='16' style='vertical-align:middle;margin-right:6px;'><path fill='#fff' d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path fill='#a8d5b5' d='M14 2v6h6'/><text x='4' y='21' font-size='11' font-weight='bold' fill='#217346'>X</text></svg>Export Excel</button>
+        <input type="text" class="search-input" placeholder="🔍 Search by name or email..." oninput="searchCustomers(this.value)" />
+      </div>
+
+      <div class="card">
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>Name</th><th>Email</th>
+                <th>Phone</th><th>Joined</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="customersTableBody">
+              <tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px;">Loading customers...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ══════════════════════════════════════
+         SECTION 5: COUPONS
+    ══════════════════════════════════════ -->
+    <section class="section" id="section-coupons">
+
+      <div class="section-actions">
+        <h2 class="section-heading">Discount Coupons</h2>
+        <button class="btn-primary" onclick="showCouponForm()">+ Add Coupon</button>
+      </div>
+
+      <!-- Add Coupon Form -->
+      <div class="form-card" id="couponForm" style="display:none;">
+        <div class="card-header">
+          <h3 class="card-title">Create New Coupon</h3>
+          <button class="btn-close" onclick="hideCouponForm()">✕</button>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Coupon Code *</label>
+            <input type="text" id="couponCode" placeholder="e.g. SAVE20" style="text-transform:uppercase" />
+          </div>
+          <div class="form-group">
+            <label>Discount Type *</label>
+            <select id="couponType">
+              <option value="percent">Percentage (%)</option>
+              <option value="flat">Flat Amount (₹)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Discount Value *</label>
+            <input type="number" id="couponValue" placeholder="e.g. 10" min="1" />
+          </div>
+          <div class="form-group">
+            <label>Minimum Order (₹)</label>
+            <input type="number" id="couponMinOrder" placeholder="e.g. 200" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Expiry Date</label>
+            <input type="date" id="couponExpiry" />
+          </div>
+          <div class="form-group">
+            <label>Usage Limit (0 = unlimited)</label>
+            <input type="number" id="couponLimit" placeholder="e.g. 100" min="0" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-secondary" onclick="hideCouponForm()">Cancel</button>
+          <button class="btn-primary" id="saveCouponBtn" onclick="addCoupon()">Create Coupon</button>
+        </div>
+      </div>
+
+      <!-- Coupons Table -->
+      <div class="card">
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Code</th><th>Type</th><th>Discount</th>
+                <th>Min Order</th><th>Expiry</th><th>Used</th><th>Status</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="couponsTableBody">
+              <tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px;">Loading coupons...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ══════════════════════════════════════
+         SECTION 6: CATEGORIES
+    ══════════════════════════════════════ -->
+    <section class="section" id="section-categories">
+
+      <div class="section-actions">
+        <h2 class="section-heading">Manage Categories</h2>
+        <button class="btn-primary" onclick="showCategoryForm()">+ Add Category</button>
+      </div>
+
+      <!-- Add Category Form -->
+      <div class="form-card" id="categoryForm" style="display:none;">
+        <div class="card-header">
+          <h3 class="card-title">Add New Category</h3>
+          <button class="btn-close" onclick="hideCategoryForm()">✕</button>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Category Name *</label>
+            <input type="text" id="catName" placeholder="e.g. Seafood" />
+          </div>
+          <div class="form-group">
+            <label>Emoji Icon</label>
+            <input type="text" id="catEmoji" placeholder="e.g. 🐟" maxlength="2" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-secondary" onclick="hideCategoryForm()">Cancel</button>
+          <button class="btn-primary" id="saveCatBtn" onclick="addCategory()">Add Category</button>
+        </div>
+      </div>
+
+      <!-- Categories Table -->
+      <div class="card">
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr><th>Emoji</th><th>Category Name</th><th>Visible on Store</th><th>Action</th></tr>
+            </thead>
+            <tbody id="categoriesTableBody">
+              <tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">Loading categories...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ══════════════════════════════════════
+         SECTION 7: SETTINGS  (Shop Open/Close + Store Info)
+    ══════════════════════════════════════ -->
+    <section class="section" id="section-settings">
+
+      <h2 class="section-heading">Settings</h2>
+
+      <!-- Shop Open / Close Card -->
+      <div class="form-card">
+        <div class="card-header">
+          <h3 class="card-title">🏪 Shop Status</h3>
+        </div>
+        <div class="shop-status-box">
+          <div class="shop-status-info">
+            <p class="shop-status-title" id="shopStatusBig">🟢 Shop is currently OPEN</p>
+            <p class="shop-status-sub">Outlet timings: <strong>7:00 AM – 10:30 PM</strong> &nbsp;|&nbsp; Customers can browse and place orders when open.</p>
+          </div>
+          <label class="toggle-switch large">
+            <input type="checkbox" id="shopToggle2" checked onchange="syncShopToggle(this)" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-grid">
+
+        <!-- Store Info -->
+        <div class="form-card">
+          <div class="card-header"><h3 class="card-title">🏪 Store Information</h3></div>
+          <div class="form-group"><label>Store Name</label><input type="text" id="storeName" value="Grocery Mart" /></div>
+          <div class="form-group"><label>Store Email</label><input type="email" id="storeEmail" value="hello@grocerymart.com" /></div>
+          <div class="form-group"><label>Phone Number</label><input type="tel" id="storePhone" value="+91 98765 43210" /></div>
+          <div class="form-group"><label>Address</label><input type="text" id="storeAddress" value="Shop No. 4, Market Road" /></div>
+          <button class="btn-primary" onclick="saveStoreInfo()">Save Changes</button>
+        </div>
+
+        <!-- Delivery Settings -->
+        <div class="form-card">
+          <div class="card-header"><h3 class="card-title">🚚 Delivery Settings</h3></div>
+          <div class="form-group"><label>Delivery Fee (₹)</label><input type="number" id="deliveryFee" value="49" min="0" step="1" /></div>
+          <div class="form-group"><label>Free Delivery Above (₹)</label><input type="number" id="freeDeliveryAbove" value="999" min="0" /></div>
+          <div class="form-group"><label>Estimated Delivery Time</label><input type="text" id="deliveryTime" value="2 hours" /></div>
+          <button class="btn-primary" onclick="saveDeliverySettings()">Save Changes</button>
+        </div>
+
+        <!-- Pincode / Service Area Management -->
+        <div class="form-card" style="grid-column:1/-1;">
+          <div class="card-header"><h3 class="card-title">📍 Delivery Area — Serviceable Pincodes</h3></div>
+          <p style="font-size:13px;color:#888;margin-bottom:16px;">Only customers with these pincodes can place orders.</p>
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+            <input type="text" id="newPinInput" placeholder="Enter 6-digit pincode" maxlength="6"
+              style="padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;width:200px;"
+              onkeypress="if(event.key==='Enter') addPin()"/>
+            <button class="btn-primary" onclick="addPin()">+ Add Pincode</button>
+          </div>
+          <div id="pinTagsList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+          <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn-primary" onclick="savePins()">💾 Save Pincodes</button>
+            <button class="btn-secondary" onclick="loadDefaultPins()">Reset to Default</button>
+          </div>
+          <p id="pinSaveMsg" style="font-size:13px;color:#2d6a4f;margin-top:8px;display:none;">✅ Pincodes saved successfully!</p>
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+  <!-- end main-area -->
+
+
+  <!-- ══════════════════════════════════════
+       JAVASCRIPT
+  ══════════════════════════════════════ -->
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+
+    /* ══ ADMIN ACCESS GUARD ══ */
+    (function() {
+      var isAdmin = localStorage.getItem('isAdmin');
+      if (isAdmin !== 'true') {
+        alert('⛔ Access denied! Please log in as admin first.');
+        window.location.href = 'login.html';
+      }
+    })();
+
+    /* ══ API SETUP ══ */
+    var API   = 'http://localhost:5000';
+    var TOKEN = localStorage.getItem('token');
+
+    function apiGet(url, callback) {
+      fetch(API + url, {
+        headers: { 'Authorization': 'Bearer ' + TOKEN }
+      })
+      .then(function(res) { return res.json(); })
+      .then(callback)
+      .catch(function(err) { console.error('API Error:', url, err); });
+    }
+
+    function apiPut(url, body, callback) {
+      fetch(API + url, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+        body:    JSON.stringify(body)
+      })
+      .then(function(res) { return res.json(); })
+      .then(callback || function(){})
+      .catch(function(err) { console.error('API Error:', url, err); });
+    }
+
+    function apiPost(url, body, callback) {
+      fetch(API + url, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+        body:    JSON.stringify(body)
+      })
+      .then(function(res) { return res.json(); })
+      .then(callback || function(){})
+      .catch(function(err) { console.error('API Error:', url, err); });
+    }
+
+    function apiDelete(url, callback) {
+      fetch(API + url, {
+        method:  'DELETE',
+        headers: { 'Authorization': 'Bearer ' + TOKEN }
+      })
+      .then(function(res) { return res.json(); })
+      .then(callback || function(){})
+      .catch(function(err) { console.error('API Error:', url, err); });
+    }
+
+
+    /* ══ LOAD DASHBOARD ══ */
+    function loadDashboard() {
+      apiGet('/api/admin/dashboard', function(data) {
+        if (!data.success) return;
+        var s = data.stats;
+        document.getElementById('dashRevenue').textContent   = '₹' + Number(s.totalRevenue).toLocaleString('en-IN');
+        document.getElementById('dashOrders').textContent    = s.totalOrders;
+        document.getElementById('dashCustomers').textContent = s.totalCustomers;
+        document.getElementById('dashProducts').textContent  = s.totalProducts;
+
+        /* Update orders badge in sidebar with real count */
+        var badge = document.getElementById('ordersBadge');
+        if (badge) {
+          badge.textContent   = s.totalOrders || 0;
+          badge.style.display = s.totalOrders > 0 ? 'inline-block' : 'none';
+        }
+
+        /* Recent orders in dashboard */
+        var recentHtml = '';
+        (data.recentOrders || []).forEach(function(o) {
+          var statusColors = { confirmed:'#e3f2fd', packed:'#fff8e1', dispatched:'#fff3e0', delivered:'#e8f5e9', cancelled:'#fce4ec' };
+          recentHtml +=
+            '<tr>' +
+              '<td>' + o.order_number + '</td>' +
+              '<td>' + (o.customer_name || '-') + '</td>' +
+              '<td>₹' + o.total + '</td>' +
+              '<td><span class="status" style="background:' + (statusColors[o.status]||'#f5f5f5') + '">' + o.status + '</span></td>' +
+            '</tr>';
+        });
+        var recentTbody = document.getElementById('recentOrdersBody');
+        if (recentTbody) recentTbody.innerHTML = recentHtml || '<tr><td colspan="4" style="text-align:center;color:#aaa;">No orders yet</td></tr>';
+      });
+    }
+
+
+    /* ══ LOAD ORDERS ══ */
+    var currentAdminOrder = null;
+
+    function loadOrders() {
+      apiGet('/api/admin/orders', function(data) {
+        if (!data.success) return;
+        var tbody = document.getElementById('ordersTableBody');
+        if (!tbody) return;
+        var statusColors = { confirmed:'#e3f2fd', packed:'#fff8e1', dispatched:'#fff3e0', delivered:'#e8f5e9', cancelled:'#fce4ec' };
+        tbody.innerHTML = data.orders.map(function(o) {
+          var safeO = encodeURIComponent(JSON.stringify(o));
+          return '<tr>' +
+            '<td><strong>' + o.order_number + '</strong></td>' +
+            '<td>' + (o.customer_name || '-') + '</td>' +
+            '<td>\u20B9' + o.total + '</td>' +
+            '<td>' + o.payment_method + '</td>' +
+            '<td><span style="background:' + (statusColors[o.status]||'#f5f5f5') + ';padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;">' + o.status + '</span></td>' +
+            '<td>' + new Date(o.created_at).toLocaleDateString('en-IN') + '</td>' +
+            '<td><button class="btn-edit" onclick="openAdminOrderModal(JSON.parse(decodeURIComponent(\'' + safeO + '\')))">' +
+              '\u{1F441} View</button></td>' +
+          '</tr>';
+        }).join('') || '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px;">No orders yet</td></tr>';
+      });
+    }
+
+    function openAdminOrderModal(o) {
+      currentAdminOrder = o;
+      document.getElementById('adminModalOrderId').textContent = 'Order ' + o.order_number;
+
+      var steps = ['confirmed','packed','dispatched','delivered'];
+      var curIdx = steps.indexOf(o.status);
+      var stepLabels = {confirmed:'Confirmed', packed:'Packed', dispatched:'Dispatched', delivered:'Delivered'};
+
+      var trackHtml = '<div style="display:flex;gap:0;margin:16px 0 20px;">';
+      steps.forEach(function(s, i) {
+        var done = i <= curIdx;
+        trackHtml += '<div style="flex:1;text-align:center;position:relative;">' +
+          (i < steps.length-1 ? '<div style="position:absolute;top:14px;left:50%;right:-50%;height:2px;background:' + (i < curIdx?'#2d6a4f':'#ddd') + ';z-index:0;"></div>' : '') +
+          '<div style="width:28px;height:28px;border-radius:50%;background:' + (done?'#2d6a4f':'#ddd') + ';color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:12px;font-weight:700;position:relative;z-index:1;">' + (done?'\u2713':(i+1)) + '</div>' +
+          '<p style="font-size:11px;color:' + (done?'#2d6a4f':'#aaa') + ';margin-top:6px;font-weight:' + (done?'600':'400') + ';">' + stepLabels[s] + '</p>' +
+        '</div>';
+      });
+      trackHtml += '</div>';
+
+      var itemsHtml = (o.items||[]).map(function(item) {
+        return '<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f5f5f5;">' +
+          '<img src="' + (item.image_url||item.img||'') + '" style="width:44px;height:44px;object-fit:cover;border-radius:8px;" onerror="this.style.display=\'none\'"/>' +
+          '<div style="flex:1;"><p style="font-size:14px;font-weight:600;color:#333;margin:0;">' + item.name + '</p>' +
+            '<p style="font-size:12px;color:#888;margin:2px 0;">Qty: ' + item.qty + ' \u00D7 \u20B9' + item.price + '</p></div>' +
+          '<p style="font-size:14px;font-weight:700;color:#2d6a4f;">\u20B9' + (item.qty * item.price) + '</p>' +
+        '</div>';
+      }).join('');
+
+      document.getElementById('adminModalContent').innerHTML =
+        trackHtml +
+        '<div style="background:#f9f9f9;border-radius:10px;padding:14px;margin-bottom:12px;">' +
+          '<p style="font-size:12px;color:#888;margin:0 0 4px;">Customer</p>' +
+          '<p style="font-size:14px;font-weight:600;color:#333;margin:0;">' + (o.customer_name||'-') + '</p>' +
+        '</div>' +
+        '<div style="margin-bottom:16px;">' + itemsHtml + '</div>' +
+        '<div style="background:#f9f9f9;border-radius:10px;padding:14px;margin-bottom:12px;">' +
+          '<p style="font-size:12px;color:#888;margin:0 0 4px;">\u{1F4CD} Delivery Address</p>' +
+          '<p style="font-size:13px;color:#333;margin:0;">' + (o.delivery_address||'-') + '</p>' +
+        '</div>' +
+        '<div style="display:flex;gap:10px;">' +
+          '<div style="flex:1;background:#f9f9f9;border-radius:10px;padding:14px;">' +
+            '<p style="font-size:12px;color:#888;margin:0 0 4px;">\u{1F4B3} Payment</p>' +
+            '<p style="font-size:13px;font-weight:600;color:#333;margin:0;">' + o.payment_method + '</p>' +
+          '</div>' +
+          '<div style="flex:1;background:#f9f9f9;border-radius:10px;padding:14px;">' +
+            '<p style="font-size:12px;color:#888;margin:0 0 4px;">\u{1F4B0} Total</p>' +
+            '<p style="font-size:16px;font-weight:700;color:#2d6a4f;margin:0;">\u20B9' + o.total + '</p>' +
+          '</div>' +
+        '</div>';
+
+      document.querySelectorAll('.status-btn').forEach(function(btn) { btn.classList.remove('active'); });
+      var activeBtn = document.querySelector('.status-btn-' + o.status);
+      if (activeBtn) activeBtn.classList.add('active');
+      document.getElementById('adminStatusMsg').style.display = 'none';
+      document.getElementById('adminOrderModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeAdminOrderModal() {
+      document.getElementById('adminOrderModal').style.display = 'none';
+      document.body.style.overflow = '';
+      currentAdminOrder = null;
+    }
+
+    function setAdminOrderStatus(status) {
+      if (!currentAdminOrder) return;
+      apiPut('/api/admin/orders/' + currentAdminOrder.id, { status: status }, function(data) {
+        if (data.success) {
+          currentAdminOrder.status = status;
+          document.querySelectorAll('.status-btn').forEach(function(b) { b.classList.remove('active'); });
+          var ab = document.querySelector('.status-btn-' + status);
+          if (ab) ab.classList.add('active');
+          document.getElementById('adminStatusMsg').style.display = 'block';
+          setTimeout(function() { document.getElementById('adminStatusMsg').style.display = 'none'; }, 2000);
+          loadOrders();
+        } else { alert('Failed to update'); }
+      });
+    }
+
+    function updateOrderStatus(orderId, status) {
+      apiPut('/api/admin/orders/' + orderId, { status: status }, function() {});
+    }
+
+
+    /* ══ LOAD PRODUCTS ══ */
+    function loadProducts() {
+      apiGet('/api/admin/products', function(data) {
+        if (!data.success) return;
+        var tbody = document.getElementById('productsTableBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = data.products.map(function(p) {
+          return '<tr>' +
+            '<td><img src="' + (p.image_url||'') + '" class="prod-thumb" alt="' + p.name + '"/></td>' +
+            '<td>' + p.name + '</td>' +
+            '<td>' + p.category + '</td>' +
+            '<td>₹' + p.price + '</td>' +
+            '<td>' + (p.weight||'-') + '</td>' +
+            '<td><span class="status ' + (p.in_stock ? 'delivered' : 'cancelled') + '">' + (p.in_stock ? 'In Stock' : 'Out of Stock') + '</span></td>' +
+            '<td>' +
+              '<button class="btn-edit" onclick="editProduct(' + p.id + ')">✏️ Edit</button> ' +
+              '<button class="btn-delete" onclick="deleteProduct(' + p.id + ')">🗑 Delete</button>' +
+            '</td>' +
+          '</tr>';
+        }).join('') || '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px;">No products</td></tr>';
+      });
+    }
+
+    function deleteProduct(id) {
+      if (!confirm('Delete this product?')) return;
+      apiDelete('/api/admin/products/' + id, function(data) {
+        if (data.success) { alert('✅ Product deleted!'); loadProducts(); }
+        else alert('❌ ' + data.message);
+      });
+    }
+
+    function editProduct(id) {
+      /* For now redirect to add form with product data */
+      alert('Edit product ID: ' + id + '\n(Edit form coming soon!)');
+    }
+
+
+    /* ══ LOAD CUSTOMERS ══ */
+    function loadCustomers() {
+      apiGet('/api/admin/users', function(data) {
+        if (!data.success) return;
+        var tbody = document.getElementById('customersTableBody');
+        if (!tbody) return;
+
+        if (!data.users || data.users.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px;">No customers yet</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.users.map(function(u) {
+          var isAdmin = u.role === 'admin';
+          return '<tr>' +
+            '<td>' + u.id + '</td>' +
+            '<td><strong>' + u.name + '</strong>' + (isAdmin ? ' <span style="background:#fff3e0;color:#e65100;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;">ADMIN</span>' : '') + '</td>' +
+            '<td>' + u.email + '</td>' +
+            '<td>' + (u.phone || '-') + '</td>' +
+            '<td>' + new Date(u.created_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) + '</td>' +
+            '<td>' +
+              (isAdmin
+                ? '<span style="font-size:12px;color:#aaa;">Protected</span>'
+                : '<button class="btn-delete" onclick="deleteCustomer(' + u.id + ',\'' + u.name.replace(/'/g,"\\'") + '\')">🗑 Delete</button>'
+              ) +
+            '</td>' +
+          '</tr>';
+        }).join('');
+      });
+    }
+
+    function deleteCustomer(id, name) {
+      if (!confirm('Delete customer "' + name + '"?\n\nThis will also delete their saved addresses. Orders will be kept for records.')) return;
+
+      apiDelete('/api/admin/users/' + id, function(data) {
+        if (data.success) {
+          alert('✅ Customer deleted successfully.');
+          loadCustomers(); /* reload table */
+          loadDashboard(); /* update customer count */
+        } else {
+          alert('❌ ' + (data.message || 'Failed to delete customer.'));
+        }
+      });
+    }
+
+
+    /* ══ OVERRIDE showSection to load data from API ══ */
+    function showSection(name, link) {
+      document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+      document.getElementById('section-' + name).classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+      if (link) link.classList.add('active');
+      var titles = { dashboard:'Dashboard', running:'Running Orders', products:'Products', orders:'All Orders',
+                     customers:'Customers', coupons:'Coupons', categories:'Categories', settings:'Settings' };
+      document.getElementById('pageTitle').textContent = titles[name] || name;
+
+      if (name === 'dashboard')  loadDashboard();
+      if (name === 'running')    loadRunningOrders();
+      if (name === 'orders')     loadOrders();
+      if (name === 'products')   loadProducts();
+      if (name === 'customers')  loadCustomers();
+      if (name === 'categories') loadCategories();
+      if (name === 'coupons')    loadCoupons();
+      if (name === 'settings')   renderPinTags();
+
+      return false;
+    }
+
+    /* ══ RUNNING ORDERS ══ */
+    function loadRunningOrders() {
+      var grid = document.getElementById('runningOrdersGrid');
+      grid.innerHTML = '<p style="color:#aaa;font-size:14px;padding:20px;">Loading...</p>';
+
+      apiGet('/api/admin/orders', function(data) {
+        if (!data.success) { grid.innerHTML = '<p style="color:#e74c3c;padding:20px;">Failed to load orders.</p>'; return; }
+
+        var running = (data.orders || []).filter(function(o) {
+          return ['confirmed','packed','dispatched'].indexOf(o.status) > -1;
+        });
+
+        /* Update running badge */
+        var badge = document.getElementById('runningBadge');
+        if (badge) badge.textContent = running.length;
+
+        if (running.length === 0) {
+          grid.innerHTML =
+            '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;">' +
+              '<div style="font-size:48px;margin-bottom:12px;">✅</div>' +
+              '<p style="font-size:16px;font-weight:600;color:#2d6a4f;">All caught up!</p>' +
+              '<p style="font-size:13px;color:#888;">No active orders right now.</p>' +
+            '</div>';
+          return;
+        }
+
+        var statusInfo = {
+          confirmed:  { bg:'#e3f2fd', color:'#1565c0', label:'✅ Confirmed',     next:'packed'     },
+          packed:     { bg:'#fff8e1', color:'#f57f17', label:'📦 Packed',        next:'dispatched' },
+          dispatched: { bg:'#fff3e0', color:'#e65100', label:'🚚 Out for Delivery', next:'delivered' }
+        };
+
+        grid.innerHTML = running.map(function(o) {
+          var s        = statusInfo[o.status] || { bg:'#f5f5f5', color:'#888', label:o.status, next:'delivered' };
+          var items    = (o.items || []).slice(0, 3);
+          var imgHtml  = items.map(function(item) {
+            return '<img src="' + (item.image_url || item.img || '') + '" ' +
+              'style="width:36px;height:36px;object-fit:cover;border-radius:6px;border:2px solid #fff;" ' +
+              'onerror="this.style.display=\'none\'" title="' + item.name + '"/>';
+          }).join('');
+
+          var nextLabel = {
+            packed:     '📦 Mark as Packed',
+            dispatched: '🚚 Mark as Dispatched',
+            delivered:  '🎉 Mark as Delivered'
+          };
+
+          return '<div style="background:#fff;border-radius:14px;border:1.5px solid #eee;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:box-shadow 0.2s;" ' +
+            'onmouseover="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,0.12)\'" onmouseout="this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.06)\'">' +
+
+            /* Header */
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">' +
+              '<div>' +
+                '<p style="font-size:15px;font-weight:700;color:#1a2e22;margin:0;">' + o.order_number + '</p>' +
+                '<p style="font-size:12px;color:#888;margin:2px 0 0;">' + (o.customer_name || 'Customer') + ' · ' + new Date(o.created_at).toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'}) + '</p>' +
+              '</div>' +
+              '<span style="background:' + s.bg + ';color:' + s.color + ';padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">' + s.label + '</span>' +
+            '</div>' +
+
+            /* Items thumbnails */
+            '<div style="display:flex;gap:6px;margin-bottom:12px;align-items:center;">' +
+              imgHtml +
+              '<span style="font-size:12px;color:#888;margin-left:4px;">' + (o.items||[]).length + ' item(s) · ₹' + o.total + '</span>' +
+            '</div>' +
+
+            /* Address */
+            '<p style="font-size:12px;color:#666;margin:0 0 14px;background:#f9f9f9;padding:8px 10px;border-radius:8px;">' +
+              '📍 ' + (o.delivery_address || 'No address') + '</p>' +
+
+            /* Status Progress Bar */
+            '<div style="display:flex;gap:4px;margin-bottom:14px;">' +
+              ['confirmed','packed','dispatched','delivered'].map(function(step, i) {
+                var steps = ['confirmed','packed','dispatched','delivered'];
+                var cur = steps.indexOf(o.status);
+                var filled = i <= cur;
+                return '<div style="flex:1;height:4px;border-radius:2px;background:' + (filled?'#2d6a4f':'#e0e0e0') + ';"></div>';
+              }).join('') +
+            '</div>' +
+
+            /* Action Buttons */
+            '<div style="display:flex;gap:8px;">' +
+              '<button onclick="quickUpdateStatus(\'' + o.id + '\',\'' + s.next + '\')" ' +
+                'style="flex:1;padding:10px;border:none;border-radius:8px;background:#2d6a4f;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;">' +
+                (nextLabel[s.next] || '🎉 Mark as Delivered') +
+              '</button>' +
+              '<button onclick="openAdminOrderModal(' + JSON.stringify(o).replace(/"/g,'&quot;') + ')" ' +
+                'style="padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;background:#fff;color:#555;font-size:13px;cursor:pointer;">' +
+                '👁' +
+              '</button>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      });
+    }
+
+    function quickUpdateStatus(orderId, status) {
+      apiPut('/api/admin/orders/' + orderId, { status: status }, function(data) {
+        if (data.success) {
+          loadRunningOrders(); /* Refresh running orders */
+          loadOrders();        /* Also refresh all orders table */
+        } else {
+          alert('Failed to update status');
+        }
+      });
+    }
+
+
+    /* ── Show today's date ── */
+    var today = new Date();
+    var opts  = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+    document.getElementById('todayDate').textContent = today.toLocaleDateString('en-US', opts);
+
+    /* ── Show real admin email from localStorage ── */
+    (function() {
+      var email = localStorage.getItem('userEmail') || 'admin@grocerymart.com';
+      var el    = document.getElementById('adminEmailDisplay');
+      if (el) el.textContent = email;
+    })();
+
+    /* ── Load dashboard data on page load ── */
+    window.addEventListener('load', function() {
+      loadDashboard();
+      loadRunningOrders();
+      loadTodaySales();
+    });
+
+    /* ── Load today's sales from orders ── */
+    function loadTodaySales() {
+      apiGet('/api/admin/orders', function(data) {
+        if (!data.success) return;
+        var todayStr = new Date().toLocaleDateString('en-IN');
+        var total    = 0;
+        (data.orders || []).forEach(function(o) {
+          var orderDate = new Date(o.created_at).toLocaleDateString('en-IN');
+          if (orderDate === todayStr && o.status !== 'cancelled') {
+            total += parseFloat(o.total) || 0;
+          }
+        });
+        var el = document.getElementById('todaySales');
+        if (el) el.textContent = '₹' + total.toLocaleString('en-IN');
+      });
+    }
+
+    /* ──TOGGLE SIDEBAR ── */
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+
+    /* ══ SHOP OPEN / CLOSE ══ */
+    function toggleShop() {
+      var isOpen  = document.getElementById('shopToggle').checked;
+      var banner  = document.getElementById('shopClosedBanner');
+      var label   = document.getElementById('shopStatusLabel');
+      var bigText = document.getElementById('shopStatusBig');
+      var toggle2 = document.getElementById('shopToggle2');
+
+      if (isOpen) {
+        if (banner)  banner.style.display = 'none';
+        if (label)   label.textContent    = '🟢 Shop Open';
+        if (bigText) bigText.textContent  = '🟢 Shop is currently OPEN';
+        if (toggle2) toggle2.checked      = true;
+      } else {
+        if (banner)  banner.style.display = 'flex';
+        if (label)   label.textContent    = '🔴 Shop Closed';
+        if (bigText) bigText.textContent  = '🔴 Shop is currently CLOSED';
+        if (toggle2) toggle2.checked      = false;
+      }
+      localStorage.setItem('shopOpen', isOpen ? 'true' : 'false');
+      fetch('http://localhost:5000/api/shop/status', {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token') },
+        body:    JSON.stringify({ shop_open: isOpen })
+      }).catch(function() { console.error('Failed to sync shop status to server'); });
+    }
+
+    function syncShopToggle(el) {
+      document.getElementById('shopToggle').checked = el.checked;
+      toggleShop();
+    }
+
+    /* ── SAVE STORE INFO ── */
+    function saveStoreInfo() {
+      var info = {
+        name:    document.getElementById('storeName').value.trim(),
+        email:   document.getElementById('storeEmail').value.trim(),
+        phone:   document.getElementById('storePhone').value.trim(),
+        address: document.getElementById('storeAddress').value.trim()
+      };
+      localStorage.setItem('storeInfo', JSON.stringify(info));
+      alert('✅ Store info saved!');
+    }
+
+    /* ── SAVE DELIVERY SETTINGS ── */
+    function saveDeliverySettings() {
+      var settings = {
+        fee:       parseInt(document.getElementById('deliveryFee').value) || 49,
+        freeAbove: parseInt(document.getElementById('freeDeliveryAbove').value) || 999,
+        time:      document.getElementById('deliveryTime').value.trim() || '2 hours'
+      };
+      localStorage.setItem('deliverySettings', JSON.stringify(settings));
+      alert('✅ Delivery settings saved! Cart and checkout will use these values.');
+    }
+
+    /* Restore shop state on load */
+    /* Load real shop status from server on admin load */
+    fetch('http://localhost:5000/api/shop/status')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var isOpen = data.shop_open !== false;
+        localStorage.setItem('shopOpen', isOpen ? 'true' : 'false');
+        var toggle = document.getElementById('shopToggle');
+        if (toggle) { toggle.checked = isOpen; toggleShop(); }
+      })
+      .catch(function() {});
+
+    var savedShopState = localStorage.getItem('shopOpen');
+    if (savedShopState === 'false') {
+      document.getElementById('shopToggle').checked  = false;
+      document.getElementById('shopToggle2').checked = false;
+      toggleShop();
+    }
+
+    /* Restore saved store info and delivery settings */
+    (function loadSavedSettings() {
+      var info = JSON.parse(localStorage.getItem('storeInfo') || 'null');
+      if (info) {
+        if (document.getElementById('storeName'))    document.getElementById('storeName').value    = info.name    || '';
+        if (document.getElementById('storeEmail'))   document.getElementById('storeEmail').value   = info.email   || '';
+        if (document.getElementById('storePhone'))   document.getElementById('storePhone').value   = info.phone   || '';
+        if (document.getElementById('storeAddress')) document.getElementById('storeAddress').value = info.address || '';
+      }
+      var ds = JSON.parse(localStorage.getItem('deliverySettings') || 'null');
+      if (ds) {
+        if (document.getElementById('deliveryFee'))      document.getElementById('deliveryFee').value      = ds.fee       || 49;
+        if (document.getElementById('freeDeliveryAbove')) document.getElementById('freeDeliveryAbove').value = ds.freeAbove || 999;
+        if (document.getElementById('deliveryTime'))     document.getElementById('deliveryTime').value     = ds.time      || '2 hours';
+      }
+    })();
+
+
+    /* ── IMAGE PREVIEW ── */
+    function previewImage(url) {
+      var preview = document.getElementById('prodImagePreview');
+      if (!url || url.length < 10) {
+        preview.style.display = 'none';
+        return;
+      }
+      preview.src          = url;
+      preview.style.display = 'block';
+      preview.onerror      = function() { preview.style.display = 'none'; };
+    }
+
+    /* ══ PRODUCTS ══ */
+
+    function showAddProductForm() {
+      document.getElementById('prodId').value       = '';
+      document.getElementById('prodName').value     = '';
+      document.getElementById('prodCategory').value = '';
+      document.getElementById('prodPrice').value    = '';
+      document.getElementById('prodOldPrice').value = '';
+      document.getElementById('prodWeight').value   = '';
+      document.getElementById('prodStock').value    = '1';
+      document.getElementById('prodFeatured').value = '0';
+      document.getElementById('prodDeal').value     = '0';
+      document.getElementById('prodImage').value    = '';
+      document.getElementById('prodDesc').value     = '';
+      document.getElementById('prodImagePreview').style.display = 'none';
+      document.getElementById('productFormTitle').textContent = 'Add New Product';
+      document.getElementById('saveProductBtn').textContent   = 'Save Product';
+      document.getElementById('addProductForm').style.display = 'block';
+      document.getElementById('addProductForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideAddProductForm() {
+      document.getElementById('addProductForm').style.display = 'none';
+    }
+
+    function editProduct(id) {
+      /* Load product from API and pre-fill form */
+      apiGet('/api/products/' + id, function(data) {
+        if (!data.product) { alert('Product not found'); return; }
+        var p = data.product;
+        document.getElementById('prodId').value       = p.id;
+        document.getElementById('prodName').value     = p.name;
+        document.getElementById('prodCategory').value = p.category;
+        document.getElementById('prodPrice').value    = p.price;
+        document.getElementById('prodOldPrice').value = p.old_price || '';
+        document.getElementById('prodWeight').value   = p.weight || '';
+        document.getElementById('prodStock').value    = p.in_stock ? '1' : '0';
+        document.getElementById('prodFeatured').value = p.is_featured ? '1' : '0';
+        document.getElementById('prodDeal').value     = p.is_deal ? '1' : '0';
+        document.getElementById('prodImage').value    = p.image_url || '';
+        document.getElementById('prodDesc').value     = p.description || '';
+        /* Show image preview */
+        previewImage(p.image_url || '');
+        document.getElementById('productFormTitle').textContent = 'Edit Product';
+        document.getElementById('saveProductBtn').textContent   = 'Update Product';
+        document.getElementById('addProductForm').style.display = 'block';
+        document.getElementById('addProductForm').scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+
+    function saveProduct() {
+      var id        = document.getElementById('prodId').value;
+      var name      = document.getElementById('prodName').value.trim();
+      var category  = document.getElementById('prodCategory').value;
+      var price     = document.getElementById('prodPrice').value;
+      var oldPrice  = document.getElementById('prodOldPrice').value;
+      var weight    = document.getElementById('prodWeight').value.trim();
+      var inStock   = document.getElementById('prodStock').value;
+      var featured  = document.getElementById('prodFeatured').value;
+      var deal      = document.getElementById('prodDeal').value;
+      var imageUrl  = document.getElementById('prodImage').value.trim();
+      var desc      = document.getElementById('prodDesc').value.trim();
+
+      if (!name || !category || !price) {
+        alert('Please fill Name, Category and Price (*)'); return;
+      }
+
+      var btn = document.getElementById('saveProductBtn');
+      btn.textContent = '⏳ Saving...';
+      btn.disabled    = true;
+
+      var body = {
+        name: name, category: category, price: parseFloat(price),
+        old_price: oldPrice ? parseFloat(oldPrice) : null,
+        weight: weight, in_stock: parseInt(inStock),
+        is_featured: parseInt(featured), is_deal: parseInt(deal),
+        image_url: imageUrl, description: desc
+      };
+
+      var url      = id ? '/api/admin/products/' + id : '/api/admin/products';
+      var method   = id ? 'PUT' : 'POST';
+
+      fetch(API + url, {
+        method:  method,
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+        body:    JSON.stringify(body)
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) {
+          alert('✅ Product ' + (id ? 'updated' : 'added') + ' successfully!');
+          hideAddProductForm();
+          loadProducts(); /* Reload products table */
+        } else {
+          alert('❌ ' + (data.message || 'Failed to save product'));
+        }
+        btn.textContent = id ? 'Update Product' : 'Save Product';
+        btn.disabled    = false;
+      })
+      .catch(function() {
+        alert('❌ Server error. Please try again.');
+        btn.textContent = id ? 'Update Product' : 'Save Product';
+        btn.disabled    = false;
+      });
+    }
+
+    function deleteProduct(id) {
+      if (!confirm('Are you sure you want to delete this product?')) return;
+      apiDelete('/api/admin/products/' + id, function(data) {
+        if (data.success) {
+          alert('✅ Product deleted!');
+          loadProducts();
+        } else {
+          alert('❌ ' + (data.message || 'Failed to delete'));
+        }
+      });
+    }
+
+    /* ══ ORDERS: Update status ══ */
+    function updateOrderStatus(orderId, status) {
+      apiPut('/api/admin/orders/' + orderId, { status: status }, function(data) {
+        if (data.success) {
+          console.log('Order ' + orderId + ' → ' + status);
+        }
+      });
+    }
+
+    /* Filter orders by status — reload from API */
+    function filterOrders(status) {
+      var url = status === 'all' ? '/api/admin/orders' : '/api/admin/orders?status=' + status;
+      apiGet(url, function(data) {
+        if (!data.success) return;
+        var tbody = document.getElementById('ordersTableBody');
+        if (!tbody) return;
+        var statusColors = { confirmed:'#e3f2fd', packed:'#fff8e1', dispatched:'#fff3e0', delivered:'#e8f5e9', cancelled:'#fce4ec' };
+        tbody.innerHTML = data.orders.map(function(o) {
+          return '<tr>' +
+            '<td>' + o.order_number + '</td>' +
+            '<td>' + (o.customer_name || '-') + '</td>' +
+            '<td>' + (o.items ? o.items.length + ' item(s)' : '-') + '</td>' +
+            '<td>₹' + o.total + '</td>' +
+            '<td>' + o.payment_method + '</td>' +
+            '<td>' +
+              '<select onchange="updateOrderStatus(\'' + o.id + '\', this.value)" style="padding:4px 8px;border-radius:6px;border:1px solid #ddd;font-family:Poppins,sans-serif;background:' + (statusColors[o.status]||'#f5f5f5') + '">' +
+                ['confirmed','packed','dispatched','delivered','cancelled'].map(function(s) {
+                  return '<option value="' + s + '"' + (o.status === s ? ' selected' : '') + '>' + s + '</option>';
+                }).join('') +
+              '</select>' +
+            '</td>' +
+            '<td>' + new Date(o.created_at).toLocaleDateString('en-IN') + '</td>' +
+          '</tr>';
+        }).join('') || '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px;">No orders</td></tr>';
+      });
+    }
+
+    /* Search customers — filter rendered table */
+    function searchCustomers(query) {
+      query = query.toLowerCase();
+      document.querySelectorAll('#customersTableBody tr').forEach(function(row) {
+        row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+      });
+    }
+
+
+    /* ══ COUPONS ══ */
+    function showCouponForm() {
+      ['couponCode','couponValue','couponMinOrder','couponLimit'].forEach(function(id) {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('couponType').value   = 'percent';
+      document.getElementById('couponExpiry').value = '';
+      document.getElementById('couponForm').style.display = 'block';
+    }
+    function hideCouponForm() { document.getElementById('couponForm').style.display = 'none'; }
+
+    /* ── LOAD COUPONS FROM DB ── */
+    function loadCoupons() {
+      apiGet('/api/admin/coupons', function(data) {
+        if (!data.success) return;
+        var tbody = document.getElementById('couponsTableBody');
+        if (!tbody) return;
+
+        if (!data.coupons || data.coupons.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px;">No coupons yet</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.coupons.map(function(c) {
+          var active  = c.is_active;
+          var expired = c.expiry_date && new Date(c.expiry_date) < new Date();
+          var displayVal = c.type === 'percent' ? c.discount + '%' : '₹' + c.discount;
+          var expiry     = c.expiry_date ? new Date(c.expiry_date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : 'No expiry';
+          var statusLabel = expired ? 'Expired' : (active ? 'Active' : 'Disabled');
+          var statusClass = expired ? 'cancelled' : (active ? 'delivered' : 'cancelled');
+
+          return '<tr>' +
+            '<td><strong>' + c.code + '</strong></td>' +
+            '<td>' + (c.type === 'percent' ? 'Percentage' : 'Flat') + '</td>' +
+            '<td>' + displayVal + '</td>' +
+            '<td>₹' + (c.min_order || 0) + '</td>' +
+            '<td>' + expiry + '</td>' +
+            '<td>' + (c.used_count || 0) + ' / ' + (c.max_uses >= 9999 ? '∞' : c.max_uses) + '</td>' +
+            '<td><span class="status ' + statusClass + '">' + statusLabel + '</span></td>' +
+            '<td style="display:flex;gap:6px;">' +
+              (!expired ? '<button class="' + (active ? 'btn-toggle-on' : 'btn-toggle-off') + '" onclick="toggleCoupon(' + c.id + ',' + (active?1:0) + ')">' +
+                (active ? '⏸ Disable' : '▶ Enable') + '</button>' : '') +
+              '<button class="btn-delete" onclick="deleteCoupon(' + c.id + ',\'' + c.code + '\')">🗑 Delete</button>' +
+            '</td>' +
+          '</tr>';
+        }).join('');
+      });
+    }
+
+    /* ── ADD COUPON ── */
+    function addCoupon() {
+      var code     = document.getElementById('couponCode').value.trim().toUpperCase();
+      var type     = document.getElementById('couponType').value;
+      var value    = document.getElementById('couponValue').value;
+      var minOrder = document.getElementById('couponMinOrder').value || '0';
+      var expiry   = document.getElementById('couponExpiry').value;
+      var limit    = document.getElementById('couponLimit').value || '0';
+
+      if (!code || !value) { alert('Please fill in Code and Discount Value.'); return; }
+
+      var btn = document.getElementById('saveCouponBtn');
+      btn.textContent = '⏳ Creating...';
+      btn.disabled    = true;
+
+      apiPost('/api/admin/coupons', {
+        code:        code,
+        type:        type,
+        discount:    parseFloat(value),
+        min_order:   parseFloat(minOrder),
+        max_uses:    parseInt(limit) || 9999,
+        expiry_date: expiry || null
+      }, function(data) {
+        if (data.success) {
+          hideCouponForm();
+          loadCoupons();
+          alert('✅ Coupon "' + code + '" created!');
+        } else {
+          alert('❌ ' + (data.message || 'Failed to create coupon.'));
+        }
+        btn.textContent = 'Create Coupon';
+        btn.disabled    = false;
+      });
+    }
+
+    /* ── TOGGLE COUPON active/inactive ── */
+    function toggleCoupon(id, currentActive) {
+      var newActive = currentActive ? 0 : 1;
+      apiPut('/api/admin/coupons/' + id, { is_active: newActive }, function(data) {
+        if (data.success) {
+          loadCoupons();
+        } else {
+          alert('❌ Failed to update coupon.');
+        }
+      });
+    }
+
+    /* ── DELETE COUPON ── */
+    function deleteCoupon(id, code) {
+      if (!confirm('Delete coupon "' + code + '"?')) return;
+      apiDelete('/api/admin/coupons/' + id, function(data) {
+        if (data.success) {
+          loadCoupons();
+          alert('✅ Coupon deleted!');
+        } else {
+          alert('❌ ' + (data.message || 'Failed to delete.'));
+        }
+      });
+    }
+
+    /* ══ DELETE any table row (generic fallback) ══ */
+    function deleteRow(btn) {
+      if (confirm('Are you sure you want to delete this?')) {
+        var row = btn.closest('tr');
+        row.style.opacity    = '0';
+        row.style.transition = 'opacity 0.3s';
+        setTimeout(function() { row.remove(); }, 300);
+      }
+    }
+
+
+    /* ══ LOGOUT ══ */
+    function handleLogout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('isAdmin');
+        window.location.href = 'login.html';
+      }
+    }
+
+
+    /* ══ PINCODE MANAGEMENT ══ */
+    var defaultPins = ["400001","400002","400003","411001","411002","411028","411044",
+                       "560001","560002","110001","110002","500001","600001","700001",
+                       "380001","411057","400076","411030","411045","400053"];
+
+    /* ── Load pincodes from DB ── */
+    function renderPinTags() {
+      apiGet('/api/admin/pincodes', function(data) {
+        var pins = (data.success && data.pincodes) ? data.pincodes : defaultPins.map(function(p) { return { pincode: p, area_name: '', is_active: 1 }; });
+        var container = document.getElementById('pinTagsList');
+        container.innerHTML = '';
+        pins.forEach(function(p) {
+          var pin = p.pincode || p;
+          var tag = document.createElement('div');
+          tag.style.cssText = 'display:flex;align-items:center;gap:6px;background:#e8f5e9;border:1px solid #a8d5b5;border-radius:100px;padding:5px 12px;font-size:13px;font-weight:600;color:#2d6a4f;';
+          tag.innerHTML = '📍 ' + pin + (p.area_name ? ' <span style="font-weight:400;color:#666;font-size:11px;">(' + p.area_name + ')</span>' : '') +
+            ' <button onclick="removePin(\'' + pin + '\')" style="background:none;border:none;cursor:pointer;color:#e74c3c;font-size:14px;font-weight:700;padding:0 2px;">×</button>';
+          container.appendChild(tag);
+        });
+      });
+    }
+
+    function addPin() {
+      var input    = document.getElementById('newPinInput');
+      var pin      = input.value.trim();
+      if (pin.length !== 6 || isNaN(pin)) { alert('Please enter a valid 6-digit pincode.'); return; }
+
+      apiPost('/api/admin/pincodes', { pincode: pin, area_name: '', is_active: 1 }, function(data) {
+        if (data.success) {
+          input.value = '';
+          renderPinTags();
+          alert('✅ Pincode ' + pin + ' added!');
+        } else {
+          alert('❌ ' + (data.message || 'Failed to add pincode'));
+        }
+      });
+    }
+
+    function removePin(pin) {
+      if (!confirm('Remove pincode ' + pin + '?')) return;
+      apiDelete('/api/admin/pincodes/' + pin, function(data) {
+        if (data.success) {
+          renderPinTags();
+        } else {
+          alert('❌ ' + (data.message || 'Failed to remove'));
+        }
+      });
+    }
+
+    function savePins() {
+      /* Pins are already saved to DB on add/remove — this just shows confirmation */
+      var msg = document.getElementById('pinSaveMsg');
+      if (msg) {
+        msg.textContent    = '✅ All pincodes are saved to database!';
+        msg.style.display  = 'block';
+        setTimeout(function() { msg.style.display = 'none'; }, 3000);
+      }
+    }
+
+    function loadDefaultPins() {
+      if (!confirm('Reset to default pincodes? This will replace all current pincodes.')) return;
+      /* Delete all then re-add defaults */
+      apiPost('/api/admin/pincodes/reset', { pins: defaultPins }, function(data) {
+        if (data.success) {
+          renderPinTags();
+          alert('✅ Reset to default pincodes!');
+        } else {
+          alert('❌ Reset failed');
+        }
+      });
+    }
+
+    /* Init pincode tags on page load */
+    renderPinTags();
+
+  </script>
+
+  <script>
+    /* ══ COUPON continuation ══ */
+    function couponContinued() {}  /* placeholder */
+
+
+    /* ══ CATEGORIES ══ */
+    function showCategoryForm() {
+      document.getElementById('catName').value  = '';
+      document.getElementById('catEmoji').value = '';
+      document.getElementById('categoryForm').style.display = 'block';
+    }
+    function hideCategoryForm() { document.getElementById('categoryForm').style.display = 'none'; }
+
+    function loadCategories() {
+      apiGet('/api/admin/categories', function(data) {
+        if (!data.success) return;
+        var tbody = document.getElementById('categoriesTableBody');
+        if (!tbody) return;
+
+        if (!data.categories || data.categories.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">No categories yet</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.categories.map(function(c) {
+          var visible = c.is_visible;
+          return '<tr id="cat-row-' + c.id + '">' +
+            '<td style="font-size:20px;">' + (c.emoji || '📦') + '</td>' +
+            '<td><strong>' + c.name + '</strong></td>' +
+            '<td>' +
+              '<span class="status ' + (visible ? 'delivered' : 'cancelled') + '" id="cat-status-' + c.id + '">' +
+                (visible ? 'Visible' : 'Hidden') +
+              '</span>' +
+            '</td>' +
+            '<td style="display:flex;gap:8px;">' +
+              '<button class="' + (visible ? 'btn-toggle-on' : 'btn-toggle-off') + '" ' +
+                'onclick="toggleCategory(' + c.id + ',' + (visible?1:0) + ')">' +
+                (visible ? '👁 Hide' : '👁 Show') +
+              '</button>' +
+              '<button class="btn-delete" onclick="deleteCategory(' + c.id + ',\'' + c.name.replace(/'/g,"\\'") + '\')">🗑 Delete</button>' +
+            '</td>' +
+          '</tr>';
+        }).join('');
+      });
+    }
+
+    function addCategory() {
+      var name  = document.getElementById('catName').value.trim();
+      var emoji = document.getElementById('catEmoji').value.trim() || '📦';
+      if (!name) { alert('Please enter a category name.'); return; }
+
+      var btn = document.getElementById('saveCatBtn');
+      btn.textContent = '⏳ Adding...';
+      btn.disabled    = true;
+
+      apiPost('/api/admin/categories', { name: name, emoji: emoji }, function(data) {
+        if (data.success) {
+          hideCategoryForm();
+          loadCategories();
+          /* Also update index.html category nav via localStorage signal */
+          localStorage.setItem('categoriesUpdated', Date.now());
+          alert('✅ Category "' + name + '" added! It will appear on the homepage.');
+        } else {
+          alert('❌ ' + (data.message || 'Failed to add category.'));
+        }
+        btn.textContent = 'Add Category';
+        btn.disabled    = false;
+      });
+    }
+
+    function toggleCategory(id, currentVisible) {
+      var newVisible = currentVisible ? 0 : 1;
+      apiPut('/api/admin/categories/' + id, { is_visible: newVisible }, function(data) {
+        if (data.success) {
+          loadCategories();
+          localStorage.setItem('categoriesUpdated', Date.now());
+        }
+      });
+    }
+
+    function deleteCategory(id, name) {
+      if (!confirm('Delete category "' + name + '"?\n\nProducts in this category will not be deleted.')) return;
+      apiDelete('/api/admin/categories/' + id, function(data) {
+        if (data.success) {
+          loadCategories();
+          localStorage.setItem('categoriesUpdated', Date.now());
+          alert('✅ Category deleted!');
+        } else {
+          alert('❌ ' + (data.message || 'Failed to delete.'));
+        }
+      });
+    }
+
+
+    /* ══ DELETE any table row ══ */
+    function deleteRow(btn) {
+      if (confirm('Are you sure you want to delete this?')) {
+        var row = btn.closest('tr');
+        row.style.opacity = '0';
+        row.style.transition = 'opacity 0.3s';
+        setTimeout(function() { row.remove(); }, 300);
+      }
+    }
+
+
+    /* ══ LOGOUT ══ */
+    function handleLogout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('isAdmin');
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+      }
+    }
+
+
+
+    /* ══ EXCEL EXPORT ══ */
+    function exportOrdersExcel() {
+      var btn = document.getElementById('btnExportOrders');
+      btn.innerHTML = '⏳ Exporting...'; btn.disabled = true;
+      apiGet('/api/admin/orders', function(data) {
+        btn.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' width=\'16\' height=\'16\' style=\'vertical-align:middle;margin-right:6px;\'><path fill=\'#fff\' d=\'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\'/><path fill=\'#a8d5b5\' d=\'M14 2v6h6\'/><text x=\'4\' y=\'21\' font-size=\'11\' font-weight=\'bold\' fill=\'#217346\'>X</text></svg>Export Excel';
+        btn.disabled = false;
+        if (!data.success || !data.orders || !data.orders.length) { alert('No orders to export.'); return; }
+        var wb = XLSX.utils.book_new();
+        // Sheet 1: Orders
+        var rows = [['Order Number','Customer','Phone','Email','Items','Subtotal (₹)','Delivery Fee (₹)','Tax (₹)','Total (₹)','Payment Method','Payment Status','Order Status','Delivery Address','Notes','Date']];
+        data.orders.forEach(function(o) {
+          rows.push([o.order_number||'', o.customer_name||'', o.customer_phone||'', o.customer_email||'',
+            o.items?o.items.length:0, +o.subtotal||0, +o.delivery_fee||0, +o.tax||0, +o.total||0,
+            o.payment_method||'', o.payment_status||'', o.status||'', o.delivery_address||'', o.notes||'',
+            o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '']);
+        });
+        var ws = XLSX.utils.aoa_to_sheet(rows);
+        ws['!cols'] = [{wch:20},{wch:20},{wch:14},{wch:28},{wch:7},{wch:13},{wch:15},{wch:10},{wch:12},{wch:14},{wch:14},{wch:12},{wch:40},{wch:24},{wch:16}];
+        XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+        // Sheet 2: Line Items
+        var itemRows = [['Order Number','Customer','Product','Qty','Unit Price (₹)','Line Total (₹)','Date']];
+        data.orders.forEach(function(o) {
+          (o.items||[]).forEach(function(it) {
+            itemRows.push([o.order_number||'', o.customer_name||'', it.name||'', it.qty||0, +it.price||0, (+it.price||0)*(it.qty||0),
+              o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '']);
+          });
+        });
+        var wsI = XLSX.utils.aoa_to_sheet(itemRows);
+        wsI['!cols'] = [{wch:20},{wch:20},{wch:28},{wch:6},{wch:14},{wch:14},{wch:16}];
+        XLSX.utils.book_append_sheet(wb, wsI, 'Order Items');
+        // Sheet 3: Revenue by Status
+        var statusMap = {};
+        data.orders.forEach(function(o){ var s=o.status||'unknown'; if(!statusMap[s]) statusMap[s]={count:0,rev:0}; statusMap[s].count++; statusMap[s].rev+=(+o.total||0); });
+        var sumRows = [['Status','Count','Revenue (₹)']];
+        Object.keys(statusMap).forEach(function(s){ sumRows.push([s, statusMap[s].count, statusMap[s].rev]); });
+        sumRows.push(['TOTAL', data.orders.length, data.orders.reduce(function(a,o){return a+(+o.total||0);},0)]);
+        var wsS = XLSX.utils.aoa_to_sheet(sumRows);
+        wsS['!cols'] = [{wch:16},{wch:10},{wch:18}];
+        XLSX.utils.book_append_sheet(wb, wsS, 'Revenue Summary');
+        XLSX.writeFile(wb, 'GroceryMart_Orders_' + new Date().toISOString().slice(0,10) + '.xlsx');
+      });
+    }
+
+    function exportCustomersExcel() {
+      var btn = document.getElementById('btnExportCustomers');
+      btn.innerHTML = '⏳ Exporting...'; btn.disabled = true;
+      apiGet('/api/admin/users', function(data) {
+        btn.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' width=\'16\' height=\'16\' style=\'vertical-align:middle;margin-right:6px;\'><path fill=\'#fff\' d=\'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\'/><path fill=\'#a8d5b5\' d=\'M14 2v6h6\'/><text x=\'4\' y=\'21\' font-size=\'11\' font-weight=\'bold\' fill=\'#217346\'>X</text></svg>Export Excel';
+        btn.disabled = false;
+        if (!data.success || !data.users || !data.users.length) { alert('No customers to export.'); return; }
+        var wb = XLSX.utils.book_new();
+        var rows = [['ID','Name','Email','Phone','Role','Joined Date']];
+        data.users.forEach(function(u){ rows.push([u.id, u.name||'', u.email||'', u.phone||'', u.role||'customer', u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '']); });
+        var ws = XLSX.utils.aoa_to_sheet(rows);
+        ws['!cols'] = [{wch:6},{wch:22},{wch:30},{wch:14},{wch:10},{wch:16}];
+        XLSX.utils.book_append_sheet(wb, ws, 'Customers');
+        // Sheet 2: with order stats
+        apiGet('/api/admin/orders', function(od) {
+          var om = {};
+          if (od.success && od.orders) od.orders.forEach(function(o){ if(!om[o.user_id]) om[o.user_id]={count:0,total:0,last:null}; om[o.user_id].count++; om[o.user_id].total+=(+o.total||0); var d=new Date(o.created_at); if(!om[o.user_id].last||d>new Date(om[o.user_id].last)) om[o.user_id].last=o.created_at; });
+          var sr = [['ID','Name','Email','Phone','Role','Joined','Orders','Spent (₹)','Last Order']];
+          data.users.forEach(function(u){ var s=om[u.id]||{count:0,total:0,last:null}; sr.push([u.id, u.name||'', u.email||'', u.phone||'', u.role||'customer', u.created_at?new Date(u.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'', s.count, s.total, s.last?new Date(s.last).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—']); });
+          var wsS = XLSX.utils.aoa_to_sheet(sr);
+          wsS['!cols'] = [{wch:6},{wch:22},{wch:30},{wch:14},{wch:10},{wch:16},{wch:8},{wch:14},{wch:16}];
+          XLSX.utils.book_append_sheet(wb, wsS, 'Customer Insights');
+          XLSX.writeFile(wb, 'GroceryMart_Customers_' + new Date().toISOString().slice(0,10) + '.xlsx');
+        });
+      });
+    }
+
+  </script>
+
+</body>
+</html>

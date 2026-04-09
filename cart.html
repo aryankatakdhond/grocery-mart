@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grocery Mart - My Cart</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Our CSS file -->
+  <link rel="stylesheet" href="css/cart.css" />
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════
+       NAVBAR  (same as homepage)
+  ══════════════════════════════════════ -->
+  <header class="top-navbar">
+
+    <!-- Logo -->
+    <a href="index.html" class="logo">
+      <span class="logo-icon">🛒</span>
+      <span class="logo-text">Grocery <strong>Mart</strong></span>
+    </a>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search products..." />
+    </div>
+
+    <!-- Nav Right -->
+    <div class="nav-right">
+      <a href="login.html" class="nav-btn" id="cartAccBtn">
+        <span class="nav-btn-icon" id="cartAccIcon">👤</span>
+        <div class="nav-btn-text">
+          <span class="nav-btn-top" id="cartAccTop">Account</span>
+          <span class="nav-btn-bottom" id="cartAccBottom">Log In</span>
+        </div>
+      </a>
+
+      <a href="cart.html" class="nav-btn cart-btn active-page">
+        <span class="nav-btn-icon">🛒</span>
+        <div class="nav-btn-text">
+          <span class="cart-count-badge" id="cartBadge">0</span>
+          <span class="nav-btn-bottom">My Cart</span>
+        </div>
+      </a>
+    </div>
+
+  </header>
+
+
+  <!-- ══════════════════════════════════════
+       BREADCRUMB  (Home > Cart)
+  ══════════════════════════════════════ -->
+  <div class="breadcrumb">
+    <a href="index.html">Home</a>
+    <span> / </span>
+    <span class="breadcrumb-current">My Cart</span>
+  </div>
+
+
+  <!-- ══════════════════════════════════════
+       MAIN CONTENT
+       Left: Cart Items  |  Right: Order Summary
+  ══════════════════════════════════════ -->
+  <main class="cart-page">
+
+
+    <!-- ── LEFT SIDE: Cart Items ── -->
+    <div class="cart-left">
+
+      <!-- Cart Header -->
+      <div class="cart-header">
+        <h2 class="cart-title">My Cart 🛒</h2>
+        <span class="cart-count-text" id="itemCountVal">0 items</span>
+      </div>
+
+      <!-- ── CART ITEMS LIST ── -->
+      <div class="cart-items-list" id="cartItemsList">
+        <!-- Items loaded dynamically from localStorage -->
+      </div>
+      <!-- end cart-items-list -->
+
+
+      <!-- ── EMPTY CART MESSAGE (hidden by default) ── -->
+      <div class="empty-cart" id="emptyCart">
+        <div class="empty-cart-icon">🛒</div>
+        <h3>Your cart is empty!</h3>
+        <p>Looks like you haven't added anything yet.</p>
+        <a href="index.html" class="btn-continue">Continue Shopping</a>
+      </div>
+
+
+      <!-- ── COUPON CODE ── -->
+      <!-- ── CONTINUE SHOPPING LINK ── -->
+      <a href="index.html" class="btn-continue-shopping">
+        ← Continue Shopping
+      </a>
+
+    </div>
+    <!-- end cart-left -->
+
+
+    <!-- ── RIGHT SIDE: Order Summary ── -->
+    <div class="cart-right">
+
+      <div class="order-summary">
+
+        <h3 class="summary-title">Order Summary</h3>
+
+        <!-- Summary Rows -->
+        <div class="summary-rows">
+
+          <div class="summary-row">
+            <span>Subtotal (<span id="summaryItemCount">0</span> items)</span>
+            <span id="subtotalVal">₹0</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Delivery Fee</span>
+            <span id="deliveryVal">₹49</span>
+          </div>
+
+          <div class="summary-row discount-row" id="discountRow" style="display: none;">
+            <span>Discount</span>
+            <span id="discountVal" class="discount-green">-₹0</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Tax (5%)</span>
+            <span id="taxVal">₹0</span>
+          </div>
+
+        </div>
+
+        <!-- Divider line -->
+        <div class="summary-divider"></div>
+
+        <!-- Total -->
+        <div class="summary-total-row">
+          <span class="summary-total-label">Total</span>
+          <span class="summary-total-val" id="totalVal">₹0</span>
+        </div>
+
+        <!-- Free delivery notice -->
+        <div class="free-delivery-notice" id="freeDeliveryNotice">
+          <span>🚚</span>
+          <span>Add <strong id="amountForFree">₹350</strong> more for <strong>FREE delivery!</strong></span>
+        </div>
+
+        <!-- Checkout Button -->
+        <button class="btn-checkout" id="checkoutBtn" onclick="handleCheckout(); return false;">
+          Proceed to Checkout →
+        </button>
+
+        <!-- Secure payment note -->
+        <p class="secure-note">🔒 Secure & encrypted payment</p>
+
+        <!-- Payment icons -->
+        <div class="payment-icons">
+          <span class="pay-icon">📱 UPI</span>
+          <span class="pay-icon">💵 COD</span>
+          <span class="pay-icon">💳 Card</span>
+        </div>
+
+      </div>
+      <!-- end order-summary -->
+
+    </div>
+    <!-- end cart-right -->
+
+
+  </main>
+  <!-- end cart-page -->
+
+
+  <!-- ══════════════════════════════════════
+       YOU MAY ALSO LIKE  (suggested products)
+  ══════════════════════════════════════ -->
+  <section class="suggested-section">
+
+    <h3 class="suggested-title">You may also like</h3>
+
+    <div class="suggested-row">
+
+      <div class="suggest-card">
+        <div class="suggest-img"><img src="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=300&h=200&fit=crop" alt="Carrots"/></div>
+        <p class="suggest-brand">Grocery Mart</p>
+        <p class="suggest-name">Baby Carrots</p>
+        <p class="suggest-weight">250g</p>
+        <div class="suggest-footer">
+          <span class="suggest-price">₹55</span>
+          <button class="btn-add-suggest" onclick="addSuggestToCart('Baby Carrots',55,'250g','https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=300&h=200&fit=crop')">+</button>
+        </div>
+      </div>
+
+      <div class="suggest-card">
+        <div class="suggest-img"><img src="https://assets.clevelandclinic.org/transform/23b87888-c044-4c32-977a-1635af87fa22/lemons-2178111697" alt="Lemon"/></div>
+        <p class="suggest-brand">Grocery Mart</p>
+        <p class="suggest-name">Fresh Green Lemon</p>
+        <p class="suggest-weight">500g</p>
+        <div class="suggest-footer">
+          <span class="suggest-price">₹65</span>
+          <button class="btn-add-suggest" onclick="addSuggestToCart('Fresh Green Lemon',65,'500g','https://assets.clevelandclinic.org/transform/23b87888-c044-4c32-977a-1635af87fa22/lemons-2178111697')">+</button>
+        </div>
+      </div>
+
+      <div class="suggest-card">
+        <div class="suggest-img"><img src="https://www.veggycation.com.au/siteassets/veggycationvegetable/spring-onions.jpg" alt="Onion"/></div>
+        <p class="suggest-brand">Grocery Mart</p>
+        <p class="suggest-name">Red Onions (Pack)</p>
+        <p class="suggest-weight">1 kg</p>
+        <div class="suggest-footer">
+          <span class="suggest-price">₹39</span>
+          <button class="btn-add-suggest" onclick="addSuggestToCart('Red Onions (Pack)',39,'1 kg','https://www.veggycation.com.au/siteassets/veggycationvegetable/spring-onions.jpg')">+</button>
+        </div>
+      </div>
+
+      <div class="suggest-card">
+        <div class="suggest-img"><img src="https://images.unsplash.com/photo-1550583724-b2692b85b150?w=300&h=200&fit=crop" alt="Milk"/></div>
+        <p class="suggest-brand">Grocery Mart</p>
+        <p class="suggest-name">Full Cream Milk</p>
+        <p class="suggest-weight">1 litre</p>
+        <div class="suggest-footer">
+          <span class="suggest-price">₹32</span>
+          <button class="btn-add-suggest" onclick="addSuggestToCart('Full Cream Milk',32,'1 litre','https://images.unsplash.com/photo-1550583724-b2692b85b150?w=300&h=200&fit=crop')">+</button>
+        </div>
+      </div>
+
+      <div class="suggest-card">
+        <div class="suggest-img"><img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&h=200&fit=crop" alt="Bread"/></div>
+        <p class="suggest-brand">Grocery Mart</p>
+        <p class="suggest-name">Multigrain Bread</p>
+        <p class="suggest-weight">400g</p>
+        <div class="suggest-footer">
+          <span class="suggest-price">₹48</span>
+          <button class="btn-add-suggest" onclick="addSuggestToCart('Multigrain Bread',48,'400g','https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&h=200&fit=crop')">+</button>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ══════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="footer-bottom">
+      <p>© 2025 Grocery Mart. All rights reserved.</p>
+      <div class="footer-pay">
+        <span>📱 UPI</span>
+        <span>💵 COD</span>
+        <span>💳 Card</span>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ══════════════════════════════════════
+       JAVASCRIPT
+  ══════════════════════════════════════ -->
+  <script>
+
+    /* ── Login state: update account button ── */
+    (function() {
+      var user = localStorage.getItem('loggedInUser');
+      var btn  = document.getElementById('cartAccBtn');
+      if (user && btn) {
+        document.getElementById('cartAccIcon').textContent   = '\u{1F44B}';
+        document.getElementById('cartAccTop').textContent    = 'Hello, ' + user;
+        document.getElementById('cartAccBottom').textContent = 'My Account';
+        btn.href = 'profile.html';
+      }
+    })();
+
+    /* ══════════════════════════
+       CART — loads from localStorage
+    ══════════════════════════ */
+    var discountPercent = 0;
+    var deliveryFee     = 49;
+    var taxRate         = 0.05;
+    var freeDeliveryAt  = 999;
+
+    function getCartItems() {
+      return JSON.parse(localStorage.getItem('cartItems') || '[]');
+    }
+
+    function saveCartItems(items) {
+      localStorage.setItem('cartItems', JSON.stringify(items));
+      syncCartBadge();
+    }
+
+    /* ── RENDER cart from localStorage ── */
+    function renderCart() {
+      var items     = getCartItems();
+      var container = document.getElementById('cartItemsList');
+      container.innerHTML = '';
+
+      items.forEach(function(item, index) {
+        var div = document.createElement('div');
+        div.className = 'cart-item';
+        div.id        = 'cart-item-' + index;
+        div.style.transition = 'opacity 0.3s, transform 0.3s';
+        div.innerHTML =
+          '<div class="cart-item-img">' +
+            '<img src="' + (item.img || item.image_url || '') + '" alt="' + item.name + '"/>' +
+          '</div>' +
+          '<div class="cart-item-details">' +
+            '<p class="cart-item-brand">Grocery Mart</p>' +
+            '<p class="cart-item-name">'   + item.name   + '</p>' +
+            '<p class="cart-item-weight">' + (item.weight || '') + '</p>' +
+            '<div class="qty-controls">' +
+              '<button class="qty-btn" onclick="changeQty(' + index + ', -1)">\u2212</button>' +
+              '<span class="qty-value" id="qty-' + index + '">' + item.qty + '</span>' +
+              '<button class="qty-btn" onclick="changeQty(' + index + ', 1)">+</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="cart-item-right">' +
+            '<p class="cart-item-price" id="price-' + index + '">\u20B9' + (item.price * item.qty) + '</p>' +
+            '<button class="btn-remove" onclick="removeItem(' + index + ')">\u{1F5D1} Remove</button>' +
+          '</div>';
+        container.appendChild(div);
+      });
+
+      updateSummary();
+      checkEmpty();
+    }
+
+    /* ── CHANGE qty — removes item if reaches 0 ── */
+    function changeQty(index, change) {
+      var items  = getCartItems();
+      var item   = items[index];
+      if (!item) return;
+
+      var newQty = item.qty + change;
+
+      /* qty reaches 0 → remove item automatically */
+      if (newQty < 1) {
+        removeItem(index);
+        return;
+      }
+
+      items[index].qty = newQty;
+      saveCartItems(items);
+
+      var qtyEl   = document.getElementById('qty-' + index);
+      var priceEl = document.getElementById('price-' + index);
+      if (qtyEl)   qtyEl.textContent   = newQty;
+      if (priceEl) priceEl.textContent = '\u20B9' + (item.price * newQty);
+
+      updateSummary();
+    }
+
+    /* ── REMOVE item ── */
+    function removeItem(index) {
+      var itemEl = document.getElementById('cart-item-' + index);
+      if (itemEl) {
+        itemEl.style.opacity   = '0';
+        itemEl.style.transform = 'translateX(30px)';
+      }
+      setTimeout(function() {
+        var items = getCartItems();
+        items.splice(index, 1);
+        saveCartItems(items);
+        renderCart();
+      }, 300);
+    }
+
+    /* ── UPDATE order summary ── */
+    function updateSummary() {
+      var items     = getCartItems();
+      var subtotal  = 0;
+      var itemCount = 0;
+
+      items.forEach(function(item) {
+        subtotal  += item.price * item.qty;
+        itemCount += item.qty;
+      });
+
+      var discountAmt = Math.round(subtotal * (discountPercent / 100));
+      var delivery    = subtotal >= freeDeliveryAt ? 0 : deliveryFee;
+      var tax         = Math.round((subtotal - discountAmt) * taxRate);
+      var total       = subtotal - discountAmt + delivery + tax;
+
+      var els = {
+        subtotalVal: '\u20B9' + subtotal,
+        deliveryVal: delivery === 0 ? 'FREE \u{1F389}' : '\u20B9' + delivery,
+        taxVal:      '\u20B9' + tax,
+        totalVal:    '\u20B9' + total,
+        itemCountVal: itemCount + ' item' + (itemCount !== 1 ? 's' : ''),
+        summaryItemCount: itemCount
+      };
+      for (var id in els) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = els[id];
+      }
+      /* Also update item count text in header */
+      var countText = document.getElementById('itemCountText');
+      if (countText) countText.textContent = itemCount + ' item' + (itemCount !== 1 ? 's' : '');
+
+      var discRow = document.getElementById('discountRow');
+      var discVal = document.getElementById('discountVal');
+      if (discRow) discRow.style.display = discountAmt > 0 ? 'flex' : 'none';
+      if (discVal) discVal.textContent   = '-\u20B9' + discountAmt;
+
+      var freeNote = document.getElementById('freeDeliveryNote');
+      if (freeNote) {
+        if (subtotal > 0 && subtotal < freeDeliveryAt) {
+          freeNote.textContent   = 'Add \u20B9' + (freeDeliveryAt - subtotal) + ' more for FREE delivery!';
+          freeNote.style.display = 'block';
+        } else {
+          freeNote.style.display = 'none';
+        }
+      }
+
+      localStorage.setItem('orderTotal',    total);
+      localStorage.setItem('orderSubtotal', subtotal);
+
+      /* Update free delivery notice */
+      var freeNotice = document.getElementById('freeDeliveryNotice');
+      var amountEl   = document.getElementById('amountForFree');
+      if (freeNotice) {
+        if (subtotal > 0 && subtotal < freeDeliveryAt) {
+          freeNotice.style.display = 'block';
+          freeNotice.innerHTML = '<span>🚚</span><span>Add <strong id="amountForFree">₹' + (freeDeliveryAt - subtotal) + '</strong> more for <strong>FREE delivery!</strong></span>';
+        } else if (subtotal >= freeDeliveryAt) {
+          freeNotice.style.display = 'block';
+          freeNotice.innerHTML = '<span>🎉</span><span><strong>You got FREE delivery!</strong></span>';
+        } else {
+          freeNotice.style.display = 'none';
+        }
+      }
+    }
+
+    /* ── CHECK empty ── */
+    function checkEmpty() {
+      var items       = getCartItems();
+      var emptyEl     = document.getElementById('emptyCart');
+      var listEl      = document.getElementById('cartItemsList');
+      var summaryEl   = document.querySelector('.order-summary');
+      var checkoutBtn = document.querySelector('.btn-checkout');
+
+      if (items.length === 0) {
+        if (emptyEl)     emptyEl.style.display    = 'flex';
+        if (listEl)      listEl.style.display     = 'none';
+        if (summaryEl)   summaryEl.style.display  = 'none';
+        if (checkoutBtn) { checkoutBtn.disabled = true; checkoutBtn.textContent = 'Cart is Empty'; }
+      } else {
+        if (emptyEl)     emptyEl.style.display    = 'none';
+        if (listEl)      listEl.style.display     = 'block';
+        if (summaryEl)   summaryEl.style.display  = 'block';
+        if (checkoutBtn) { checkoutBtn.disabled = false; checkoutBtn.textContent = 'Proceed to Checkout \u2192'; }
+      }
+    }
+
+    /* ── ADD suggested product to cart ── */
+    function addSuggestToCart(name, price, weight, img) {
+      var items    = getCartItems();
+      var existing = items.findIndex(function(i) { return i.name === name; });
+      if (existing > -1) {
+        items[existing].qty += 1;
+      } else {
+        items.push({ name: name, price: price, qty: 1, weight: weight, img: img, image_url: img });
+      }
+      saveCartItems(items);
+      renderCart();
+      /* Show brief confirmation */
+      var btn = event.target;
+      var orig = btn.textContent;
+      btn.textContent = '✓';
+      btn.style.background = '#2d6a4f';
+      btn.style.color = '#fff';
+      setTimeout(function() {
+        btn.textContent = orig;
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 1000);
+    }
+
+    /* ── APPLY coupon ── */
+    function applyCoupon() {
+      var code  = document.getElementById('couponInput').value.trim().toUpperCase();
+      var valid = { 'FRESH10': 10, 'SAVE20': 20, 'MART5': 5 };
+      var msgEl = document.getElementById('couponMsg');
+      if (!code) { alert('Please enter a coupon code.'); return; }
+      if (valid[code] !== undefined) {
+        discountPercent         = valid[code];
+        msgEl.textContent       = '\u2705 Coupon applied! ' + discountPercent + '% off';
+        msgEl.style.color       = '#2d6a4f';
+        msgEl.style.display     = 'block';
+        localStorage.setItem('discountAmt', discountPercent);
+        updateSummary();
+      } else {
+        msgEl.textContent   = '\u274C Invalid coupon code.';
+        msgEl.style.color   = '#e74c3c';
+        msgEl.style.display = 'block';
+      }
+    }
+
+    /* ── CHECKOUT ── */
+    function handleCheckout() {
+      var items = getCartItems();
+      if (items.length === 0) { alert('Your cart is empty!'); return false; }
+
+      if (localStorage.getItem('shopOpen') === 'false') {
+        alert('🔴 Our outlet is currently closed.\n\nWe are open daily from 7:00 AM – 10:30 PM.\nYour cart items are saved — please come back during store hours to place your order.');
+        return false;
+      }
+
+      if (!localStorage.getItem('loggedInUser')) {
+        localStorage.setItem('redirectAfterLogin', 'checkout.html');
+        alert('Please log in to continue to checkout.');
+        window.location.replace('login.html');
+        return false;
+      }
+
+      /* Clear any stale redirect */
+      localStorage.removeItem('redirectAfterLogin');
+
+      /* Navigate to checkout */
+      window.location.replace('checkout.html');
+      return false;
+    }
+
+    /* ── INIT — run after page fully loads ── */
+    window.addEventListener('load', function() {
+      /* Clear old demo data if present */
+      var items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      var allOld = items.length > 0 && items.every(function(i) {
+        return i.name === 'Avocado - Medium' ||
+               i.name === 'Green Fresh Broccoli' ||
+               i.name === 'Fresh Red Tomatoes';
+      });
+      if (allOld) localStorage.removeItem('cartItems');
+
+      renderCart();
+      syncCartBadge();
+
+      /* Show notice if shop is closed */
+      if (localStorage.getItem('shopOpen') === 'false') {
+        var checkoutBtn = document.querySelector('.btn-checkout');
+        if (checkoutBtn) {
+          checkoutBtn.disabled    = true;
+          checkoutBtn.textContent = '🔴 Outlet Closed — Opens at 7:00 AM';
+          checkoutBtn.style.background = '#888';
+        }
+        var notice = document.createElement('div');
+        notice.style.cssText = 'background:#fff3e0;border:1.5px solid #ffcc80;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#e65100;font-family:Poppins,sans-serif;';
+        notice.innerHTML = '🔴 <strong>Outlet is currently closed.</strong> Open daily 7:00 AM – 10:30 PM. Your cart is saved!';
+        var cartLeft = document.querySelector('.cart-left');
+        if (cartLeft) cartLeft.insertBefore(notice, cartLeft.firstChild);
+      }
+    });
+
+  </script>
+
+
+  <script>
+
+    /* ── SYNC CART BADGE from localStorage ── */
+    function syncCartBadge() {
+      var items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      var total = items.reduce(function(s, i) { return s + (i.qty || 1); }, 0);
+      /* Update all badge elements on page */
+      document.querySelectorAll('.cart-count-badge, #cartBadge').forEach(function(el) {
+        el.textContent = total || 0;
+      });
+    }
+    syncCartBadge();
+  </script>
+
+</body>
+</html>

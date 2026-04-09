@@ -1,0 +1,435 @@
+/* =============================================
+   login.css — Styles for the Login Page
+   FreshBasket Grocery Store
+   ============================================= */
+
+
+/* ── RESET ──
+   Remove default browser margin/padding
+   from every element on the page         */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+/* ── BODY ──
+   Set the background color and font
+   for the whole page                      */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f4f9f4;  /* light green background */
+  color: #333;
+}
+
+
+/* =============================================
+   NAVBAR
+   ============================================= */
+
+.navbar {
+  background-color: #2d6a4f;   /* dark green */
+  padding: 15px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Logo text inside navbar */
+.navbar .logo {
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
+  text-decoration: none;        /* remove underline */
+}
+
+/* The yellow part of the logo */
+.navbar .logo span {
+  color: #f6c90e;
+}
+
+/* "Back to Store" link */
+.navbar .back-link {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.navbar .back-link:hover {
+  color: white;
+}
+
+
+/* =============================================
+   CONTAINER
+   Centers the login box in the middle of page
+   ============================================= */
+
+.container {
+  display: flex;
+  justify-content: center;   /* center left-right */
+  align-items: center;       /* center top-bottom */
+  min-height: calc(100vh - 60px);  /* full screen height minus navbar */
+  padding: 30px 15px;
+}
+
+
+/* =============================================
+   LOGIN BOX
+   The white card that holds the form
+   ============================================= */
+
+.login-box {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 420px;   /* don't stretch too wide on big screens */
+}
+
+/* Main heading */
+.login-box h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d6a4f;
+  margin-bottom: 6px;
+}
+
+/* Subtitle below heading */
+.login-box .subtitle {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 28px;
+}
+
+
+/* =============================================
+   TABS  (Login / Sign Up buttons)
+   ============================================= */
+
+.tabs {
+  display: flex;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 28px;
+}
+
+/* Each tab button */
+.tabs button {
+  flex: 1;                    /* both buttons share equal width */
+  padding: 10px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  color: #888;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* The currently selected tab */
+.tabs button.active {
+  background-color: white;
+  color: #2d6a4f;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+/* =============================================
+   FORM SECTIONS
+   Each form (login / signup) is hidden
+   by default. Only the .active one shows.
+   ============================================= */
+
+.form-section {
+  display: none;    /* hidden */
+}
+
+.form-section.active {
+  display: block;   /* visible */
+}
+
+
+/* =============================================
+   FORM GROUP
+   Wraps each label + input pair
+   ============================================= */
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+/* Label text above input */
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 6px;
+}
+
+/* Input field */
+.form-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+  outline: none;                   /* remove default browser outline */
+  transition: border-color 0.2s;
+}
+
+/* Input field when the user clicks on it */
+.form-group input:focus {
+  border-color: #52b788;   /* green border on focus */
+}
+
+
+/* =============================================
+   ERROR MESSAGE
+   Shown below an input when validation fails
+   ============================================= */
+
+.error-msg {
+  font-size: 12px;
+  color: #e53e3e;       /* red */
+  margin-top: 5px;
+  display: none;        /* hidden — JavaScript shows it when needed */
+}
+
+
+/* =============================================
+   OPTIONS ROW
+   "Remember me" checkbox + "Forgot Password?"
+   ============================================= */
+
+.options-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+/* "Remember me" label */
+.options-row .remember-label {
+  font-size: 13px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* "Forgot Password?" link */
+.options-row a {
+  font-size: 13px;
+  color: #2d6a4f;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.options-row a:hover {
+  text-decoration: underline;
+}
+
+
+/* =============================================
+   SUBMIT BUTTON  (Login / Create Account)
+   ============================================= */
+
+.btn-submit {
+  width: 100%;
+  padding: 13px;
+  background-color: #2d6a4f;   /* dark green */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-submit:hover {
+  background-color: #52b788;   /* lighter green on hover */
+}
+
+
+/* =============================================
+   DIVIDER  ── or ──
+   ============================================= */
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.divider hr {
+  flex: 1;
+  border: none;
+  border-top: 1px solid #e0e0e0;
+}
+
+.divider span {
+  font-size: 13px;
+  color: #aaa;
+}
+
+
+/* =============================================
+   GOOGLE BUTTON
+   ============================================= */
+
+.btn-google {
+  width: 100%;
+  padding: 12px;
+  background-color: white;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  color: #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-google:hover {
+  background-color: #f9f9f9;
+  border-color: #aaa;
+}
+
+
+/* =============================================
+   SWITCH LINK
+   "Don't have an account? Sign Up"
+   ============================================= */
+
+.switch-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: #888;
+}
+
+.switch-link a {
+  color: #2d6a4f;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.switch-link a:hover {
+  text-decoration: underline;
+}
+
+
+/* =============================================
+   TERMS LABEL  (Sign Up form)
+   ============================================= */
+
+.terms-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #555;
+}
+
+.terms-label a {
+  color: #2d6a4f;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+
+/* =============================================
+   SUCCESS BOX
+   Shown after successful login or signup
+   ============================================= */
+
+.success-box {
+  display: none;          /* hidden by default, shown by JavaScript */
+  text-align: center;
+  padding: 20px 0;
+}
+
+.success-box .success-icon {
+  font-size: 52px;
+  margin-bottom: 14px;
+}
+
+.success-box h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2d6a4f;
+  margin-bottom: 8px;
+}
+
+.success-box p {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 22px;
+}
+
+
+/* =============================================
+   RESPONSIVE
+   On small screens (phones), reduce padding
+   ============================================= */
+
+@media (max-width: 480px) {
+  .login-box {
+    padding: 28px 20px;
+  }
+}
+
+
+/* =============================================
+   ADMIN HINT BOX
+   Shows admin credentials below login form
+   ============================================= */
+
+.admin-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: #f0f7f0;
+  border: 1.5px dashed #52b788;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 18px;
+}
+
+.admin-hint-icon {
+  font-size: 22px;
+  margin-top: 2px;
+}
+
+.admin-hint-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2d6a4f;
+  margin-bottom: 4px;
+}
+
+.admin-hint-text {
+  font-size: 12px;
+  color: #555;
+  font-family: monospace;  /* looks like code */
+  line-height: 1.7;
+}

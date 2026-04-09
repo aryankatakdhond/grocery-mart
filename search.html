@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grocery Mart - Search Results</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/index.css"/>
+  <link rel="stylesheet" href="css/search.css"/>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════ -->
+<header class="top-navbar">
+
+    <!-- Logo -->
+    <a href="index.html" class="logo">
+      <span class="logo-icon">🛒</span>
+      <span class="logo-text">Grocery <strong>Mart</strong></span>
+    </a>
+
+    <!-- Search bar with dropdown -->
+    <div class="search-wrap" id="searchWrap">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search fresh groceries..."
+          autocomplete="off"
+          oninput="onSearchInput(this.value)"
+          onkeypress="if(event.key==='Enter') doSearch()"
+          onfocus="showDropdown()"
+        />
+        <button class="btn-clear-input" id="btnClearInput" onclick="clearInput()" style="display:none;">✕</button>
+        <button class="btn-search" onclick="doSearch()">Search</button>
+      </div>
+
+      <!-- Search dropdown: recent + popular -->
+      <div class="search-dropdown" id="searchDropdown" style="display:none;">
+        <div id="recentSection">
+          <div class="dropdown-section-head">
+            <span>🕐 Recent Searches</span>
+            <button class="btn-clear-recent" onclick="clearRecent()">Clear</button>
+          </div>
+          <div id="recentList"></div>
+        </div>
+        <div id="popularSection">
+          <div class="dropdown-section-head">
+            <span>🔥 Popular Searches</span>
+          </div>
+          <div class="popular-tags" id="popularList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account & Cart — same as homepage -->
+    <div class="nav-right">
+
+      <a href="login.html" class="nav-btn" id="accountBtn">
+        <span class="nav-btn-icon" id="accountIcon">👤</span>
+        <div class="nav-btn-text">
+          <span class="nav-btn-top" id="navUserLabel">Account</span>
+          <span class="nav-btn-bottom" id="accountBottom">Log In</span>
+        </div>
+      </a>
+
+      <a href="cart.html" class="nav-btn cart-btn">
+        <span class="nav-btn-icon">🛒</span>
+        <div class="nav-btn-text">
+          <span class="cart-count-badge cart-badge" id="cartBadge">0</span>
+          <span class="nav-btn-bottom">My Cart</span>
+        </div>
+      </a>
+
+    </div>
+  </header>
+
+
+<!-- ══════════════════════════════════════
+     MAIN LAYOUT
+══════════════════════════════════════ -->
+<main class="search-page">
+
+  <!-- ── FILTER SIDEBAR ── -->
+  <aside class="filter-sidebar">
+    <h3 class="filter-title">🔽 Filters</h3>
+
+    <!-- Category filter -->
+    <div class="filter-section">
+      <h4 class="filter-sec-title">Category</h4>
+      <div class="filter-options" id="catFilters">
+        <label class="filter-opt">
+          <input type="checkbox" value="all" checked onchange="handleCatCheck(this)"/> All Categories
+        </label>
+        <label class="filter-opt">
+          <input type="checkbox" value="Fruits" onchange="handleCatCheck(this)"/> 🍎 Fruits
+        </label>
+        <label class="filter-opt">
+          <input type="checkbox" value="Vegetables" onchange="handleCatCheck(this)"/> 🥦 Vegetables
+        </label>
+        <label class="filter-opt">
+          <input type="checkbox" value="Dairy" onchange="handleCatCheck(this)"/> 🥛 Dairy
+        </label>
+        <label class="filter-opt">
+          <input type="checkbox" value="Grocery" onchange="handleCatCheck(this)"/> 🛍️ Grocery
+        </label>
+        <label class="filter-opt">
+          <input type="checkbox" value="Bakery &amp; Pastry" onchange="handleCatCheck(this)"/> 🍞 Bakery
+        </label>
+      </div>
+    </div>
+
+    <!-- Sort -->
+    <div class="filter-section">
+      <h4 class="filter-sec-title">Sort By</h4>
+      <select class="sort-select" id="sortBy" onchange="applyFilters()">
+        <option value="relevance">Relevance</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="name">Name: A to Z</option>
+      </select>
+    </div>
+
+    <!-- Stock filter -->
+    <div class="filter-section">
+      <h4 class="filter-sec-title">Availability</h4>
+      <label class="filter-opt">
+        <input type="checkbox" id="inStockOnly" onchange="applyFilters()"/> In Stock only
+      </label>
+    </div>
+
+    <button class="btn-clear-filters" onclick="clearFilters()">🗑 Clear All Filters</button>
+  </aside>
+
+
+  <!-- ── RESULTS AREA ── -->
+  <div class="results-area">
+
+    <!-- Results header -->
+    <div class="results-header">
+      <p class="results-count" id="resultsCount">Searching...</p>
+      <div class="view-toggle">
+        <button class="view-btn active" onclick="setView('grid', this)" title="Grid view">⊞</button>
+        <button class="view-btn"        onclick="setView('list', this)" title="List view">☰</button>
+      </div>
+    </div>
+
+    <!-- Results grid/list -->
+    <div id="resultsGrid" class="products-grid"></div>
+
+    <!-- No results -->
+    <div class="no-results" id="noResults" style="display:none;">
+      <div class="no-res-icon">🔍</div>
+      <h3>No results found</h3>
+      <p id="noResMsg">Try different keywords or remove filters.</p>
+      <a href="index.html" class="btn-browse">Browse All Products →</a>
+    </div>
+
+  </div>
+
+</main>
+
+
+<!-- ══════════════════════════════════════
+     PRODUCT DETAIL MODAL
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="productModal" onclick="closeModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <div class="modal-left">
+      <img src="" alt="" id="modalImg" class="modal-img"/>
+      <div class="modal-badges">
+        <span class="modal-cat-badge" id="modalCat"></span>
+        <span class="modal-stock-badge" id="modalStock"></span>
+      </div>
+    </div>
+
+    <div class="modal-right">
+      <p class="modal-brand">Grocery Mart</p>
+      <h2 class="modal-name" id="modalName"></h2>
+      <p class="modal-weight" id="modalWeight"></p>
+
+      <div class="modal-rating">
+        <span class="stars" id="modalStars"></span>
+        <span class="rating-count" id="modalRatingCount"></span>
+      </div>
+
+      <div class="modal-price-row">
+        <span class="modal-price" id="modalPrice"></span>
+        <span class="modal-per">incl. taxes</span>
+      </div>
+
+      <p class="modal-desc" id="modalDesc"></p>
+
+      <ul class="modal-perks">
+        <li>✅ 100% Fresh & Natural</li>
+        <li>🚚 Delivery in 2 hours</li>
+        <li>🔄 Easy 7-day return</li>
+        <li>🌿 Sourced from local farms</li>
+      </ul>
+
+      <div class="modal-qty-row">
+        <span class="modal-qty-label">Qty</span>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <span class="qty-num" id="modalQtyNum">1</span>
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+        <span class="modal-total-price" id="modalTotalPrice"></span>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-modal-cart" onclick="addToCartFromModal()">🛒 Add to Cart</button>
+        <button class="btn-modal-buy"  onclick="alert('Redirecting to checkout...')">⚡ Buy Now</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     FOOTER
+══════════════════════════════════════ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-col">
+      <div class="footer-logo">🛒 Grocery <strong>Mart</strong></div>
+      <p class="footer-desc">Fresh products delivered fast to your door.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="cart.html">My Cart</a></li>
+        <li><a href="profile.html">My Orders</a></li>
+        <li><a href="login.html">Login / Sign Up</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Categories</h4>
+      <ul>
+        <li><a href="search.html?q=fruits">🍎 Fruits</a></li>
+        <li><a href="search.html?q=vegetables">🥦 Vegetables</a></li>
+        <li><a href="search.html?q=dairy">🥛 Dairy</a></li>
+        <li><a href="search.html?q=bakery">🍞 Bakery</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Help</h4>
+      <ul>
+        <li><a href="#">Track Order</a></li>
+        <li><a href="#">Returns</a></li>
+        <li><a href="#">FAQs</a></li>
+        <li><a href="#">Contact Us</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Grocery Mart. All rights reserved.</p>
+    <div class="footer-pay">
+      <span>📱 UPI</span><span>💳 Visa</span>
+      <span>💳 Mastercard</span><span>💵 COD</span>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+
+  /* ══ PRODUCTS DATABASE ══ */
+  var allProducts = []; /* loaded from API */
+
+  var popularSearches = ['Tomatoes','Mango','Milk','Broccoli','Grapes','Bread','Avocado','Carrots'];
+
+  var currentView    = 'grid';
+  var currentProduct = null;
+  var modalQty       = 1;
+  var query          = '';
+
+
+  /* ══════════════════════════
+     SEARCH DROPDOWN
+  ══════════════════════════ */
+
+  function showDropdown() {
+    renderDropdown('');
+    document.getElementById('searchDropdown').style.display = 'block';
+  }
+
+  function hideDropdown() {
+    setTimeout(function() {
+      document.getElementById('searchDropdown').style.display = 'none';
+    }, 200);
+  }
+
+  function onSearchInput(val) {
+    /* Show/hide clear button */
+    document.getElementById('btnClearInput').style.display = val ? 'flex' : 'none';
+    renderDropdown(val);
+    document.getElementById('searchDropdown').style.display = 'block';
+  }
+
+  function renderDropdown(val) {
+    /* ── Recent searches ── */
+    var recent      = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+    var recentSec   = document.getElementById('recentSection');
+    var recentList  = document.getElementById('recentList');
+
+    if (recent.length > 0) {
+      recentSec.style.display = 'block';
+      recentList.innerHTML    = recent.map(function(r) {
+        return '<div class="dropdown-item recent-item" onclick="selectSearch(\'' + r + '\')">' +
+          '<span class="dropdown-item-icon">🕐</span>' +
+          '<span>' + r + '</span>' +
+          '</div>';
+      }).join('');
+    } else {
+      recentSec.style.display = 'none';
+    }
+
+    /* ── Popular searches ── */
+    var popSec   = document.getElementById('popularSection');
+    var popList  = document.getElementById('popularList');
+    var pops     = val
+      ? popularSearches.filter(function(p) { return p.toLowerCase().includes(val.toLowerCase()); })
+      : popularSearches;
+
+    if (pops.length > 0) {
+      popSec.style.display = 'block';
+      popList.innerHTML    = pops.map(function(p) {
+        return '<span class="pop-tag" onclick="selectSearch(\'' + p + '\')">' + p + '</span>';
+      }).join('');
+    } else {
+      popSec.style.display = 'none';
+    }
+  }
+
+  function selectSearch(term) {
+    document.getElementById('searchInput').value = term;
+    document.getElementById('searchDropdown').style.display = 'none';
+    document.getElementById('btnClearInput').style.display  = 'flex';
+    query = term;
+    saveRecentSearch(term);
+    applyFilters();
+  }
+
+  function clearInput() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('btnClearInput').style.display = 'none';
+    query = '';
+    applyFilters();
+    document.getElementById('searchDropdown').style.display = 'block';
+    renderDropdown('');
+  }
+
+
+  /* ══════════════════════════
+     RECENT SEARCHES
+  ══════════════════════════ */
+
+  function saveRecentSearch(term) {
+    if (!term) return;
+    var recent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+    recent     = recent.filter(function(r) { return r.toLowerCase() !== term.toLowerCase(); });
+    recent.unshift(term);
+    if (recent.length > 5) recent = recent.slice(0, 5);
+    localStorage.setItem('recentSearches', JSON.stringify(recent));
+  }
+
+  function clearRecent() {
+    localStorage.removeItem('recentSearches');
+    document.getElementById('recentSection').style.display = 'none';
+  }
+
+
+  /* ══════════════════════════
+     DO SEARCH
+  ══════════════════════════ */
+
+  function doSearch() {
+    var q = document.getElementById('searchInput').value.trim();
+    if (!q) return;
+    saveRecentSearch(q);
+    query = q;
+    /* Update URL without page reload */
+    var newUrl = window.location.pathname + '?q=' + encodeURIComponent(q);
+    history.pushState({}, '', newUrl);
+    document.getElementById('searchDropdown').style.display = 'none';
+    applyFilters();
+  }
+
+
+  /* ══════════════════════════
+     CATEGORY CHECKBOX LOGIC
+  ══════════════════════════ */
+
+  function handleCatCheck(checkbox) {
+    var allBox = document.querySelector('#catFilters input[value="all"]');
+    if (checkbox.value === 'all') {
+      /* If "All" checked → uncheck others */
+      if (checkbox.checked) {
+        document.querySelectorAll('#catFilters input[type="checkbox"]').forEach(function(c) {
+          c.checked = c.value === 'all';
+        });
+      }
+    } else {
+      /* If specific category checked → uncheck "All" */
+      if (checkbox.checked) allBox.checked = false;
+      /* If nothing checked → re-check "All" */
+      var anyChecked = Array.from(
+        document.querySelectorAll('#catFilters input[type="checkbox"]:not([value="all"])')
+      ).some(function(c) { return c.checked; });
+      if (!anyChecked) allBox.checked = true;
+    }
+    applyFilters();
+  }
+
+
+  /* ══════════════════════════
+     APPLY FILTERS + SORT
+  ══════════════════════════ */
+
+  function applyFilters() {
+    var q          = query.toLowerCase().trim();
+    var sortBy     = document.getElementById('sortBy').value;
+    var inStockOnly= document.getElementById('inStockOnly').checked;
+
+    /* Get selected categories */
+    var catBoxes = document.querySelectorAll('#catFilters input[type="checkbox"]:checked');
+    var cats     = Array.from(catBoxes).map(function(c) { return c.value; });
+    var allCat   = cats.includes('all');
+
+    var results = allProducts.filter(function(p) {
+      var matchQ    = !q || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q);
+      var matchCat  = allCat || cats.includes(p.category);
+      var matchStock= !inStockOnly || p.inStock;
+      return matchQ && matchCat && matchStock;
+    });
+
+    /* Sort */
+    if (sortBy === 'price-asc')  results.sort(function(a,b){ return a.price - b.price; });
+    if (sortBy === 'price-desc') results.sort(function(a,b){ return b.price - a.price; });
+    if (sortBy === 'name')       results.sort(function(a,b){ return a.name.localeCompare(b.name); });
+
+    renderResults(results, q);
+  }
+
+  function clearFilters() {
+    document.querySelectorAll('#catFilters input').forEach(function(c) {
+      c.checked = c.value === 'all';
+    });
+    document.getElementById('sortBy').value       = 'relevance';
+    document.getElementById('inStockOnly').checked = false;
+    applyFilters();
+  }
+
+
+  /* ══════════════════════════
+     HIGHLIGHT KEYWORD
+  ══════════════════════════ */
+
+  function highlight(text, keyword) {
+    if (!keyword) return text;
+    var regex = new RegExp('(' + keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    return text.replace(regex, '<mark class="hl">$1</mark>');
+  }
+
+
+  /* ══════════════════════════
+     RENDER RESULTS
+  ══════════════════════════ */
+
+  function renderResults(results, q) {
+    var grid  = document.getElementById('resultsGrid');
+    var none  = document.getElementById('noResults');
+    var count = document.getElementById('resultsCount');
+
+    /* Update count */
+    count.textContent = results.length + ' result' + (results.length !== 1 ? 's' : '') +
+      (q ? ' for "' + q + '"' : '');
+
+    if (results.length === 0) {
+      grid.innerHTML = '';
+      none.style.display = 'flex';
+      document.getElementById('noResMsg').textContent =
+        q ? 'No products found for "' + q + '". Try different keywords.' : 'No products match your filters.';
+      return;
+    }
+    none.style.display = 'none';
+
+    /* ── GRID VIEW ── */
+    if (currentView === 'grid') {
+      grid.className = 'products-grid';
+      grid.innerHTML = results.map(function(p) {
+        var stars     = renderStars(p.rating);
+        var stockBadge= p.inStock
+          ? '<span class="badge in-stock">In Stock</span>'
+          : '<span class="badge out-stock">Out of Stock</span>';
+        return (
+          '<div class="product-card' + (!p.inStock ? ' out-of-stock' : '') + '" onclick="openModal(' + p.id + ')">' +
+            '<div class="p-img">' +
+              stockBadge +
+              '<img src="' + p.img + '" alt="' + p.name + '" loading="lazy"/>' +
+            '</div>' +
+            '<div class="p-info">' +
+              '<p class="p-cat">' + p.category + '</p>' +
+              '<p class="p-name">' + highlight(p.name, q) + '</p>' +
+              '<p class="p-weight">' + p.weight + '</p>' +
+              '<div class="p-rating">' + stars + '<span class="p-reviews">(' + p.reviews + ')</span></div>' +
+              '<div class="p-foot">' +
+                '<span class="p-price">₹' + p.price + '</span>' +
+                '<button class="btn-add" onclick="event.stopPropagation(); quickAdd(' + p.id + ')" ' +
+                  (p.inStock ? '' : 'disabled title="Out of stock"') + '>+</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+
+    /* ── LIST VIEW ── */
+    } else {
+      grid.className = 'products-list';
+      grid.innerHTML = results.map(function(p) {
+        var stars     = renderStars(p.rating);
+        var stockBadge= p.inStock
+          ? '<span class="badge in-stock">In Stock</span>'
+          : '<span class="badge out-stock">Out of Stock</span>';
+        return (
+          '<div class="product-list-item' + (!p.inStock ? ' out-of-stock' : '') + '" onclick="openModal(' + p.id + ')">' +
+            '<img src="' + p.img + '" class="li-img" alt="' + p.name + '" loading="lazy"/>' +
+            '<div class="li-info">' +
+              '<div class="li-top">' +
+                '<p class="li-cat">' + p.category + '</p>' +
+                stockBadge +
+              '</div>' +
+              '<p class="li-name">' + highlight(p.name, q) + '</p>' +
+              '<p class="li-desc">' + p.desc + '</p>' +
+              '<div class="li-rating">' + stars + '<span class="p-reviews">(' + p.reviews + ' reviews)</span></div>' +
+              '<p class="li-weight">📦 ' + p.weight + '</p>' +
+            '</div>' +
+            '<div class="li-right">' +
+              '<p class="li-price">₹' + p.price + '</p>' +
+              '<button class="btn-add-list" onclick="event.stopPropagation(); quickAdd(' + p.id + ')" ' +
+                (p.inStock ? '' : 'disabled') + '>' +
+                (p.inStock ? '🛒 Add to Cart' : 'Out of Stock') +
+              '</button>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+    }
+  }
+
+  /* Render star rating */
+  function renderStars(rating) {
+    var full  = Math.floor(rating);
+    var half  = rating % 1 >= 0.5 ? 1 : 0;
+    var empty = 5 - full - half;
+    return '<span class="stars">' +
+      '★'.repeat(full) +
+      (half ? '½' : '') +
+      '☆'.repeat(empty) +
+      '</span>' +
+      '<span class="rating-num">' + rating.toFixed(1) + '</span>';
+  }
+
+
+  /* ══════════════════════════
+     VIEW TOGGLE
+  ══════════════════════════ */
+
+  function setView(view, btn) {
+    currentView = view;
+    document.querySelectorAll('.view-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    applyFilters();
+  }
+
+
+  /* ══════════════════════════
+     PRODUCT MODAL
+  ══════════════════════════ */
+
+  function openModal(id) {
+    var p = allProducts.find(function(x) { return x.id === id; });
+    if (!p) return;
+
+    currentProduct = p;
+    modalQty       = 1;
+
+    document.getElementById('modalImg').src         = p.img;
+    document.getElementById('modalImg').alt         = p.name;
+    document.getElementById('modalName').innerHTML  = p.name;
+    document.getElementById('modalWeight').textContent = '📦 ' + p.weight;
+    document.getElementById('modalCat').textContent    = p.category;
+    document.getElementById('modalPrice').textContent  = '₹' + p.price;
+    document.getElementById('modalDesc').textContent   = p.desc;
+    document.getElementById('modalQtyNum').textContent = 1;
+    document.getElementById('modalTotalPrice').textContent = 'Total: ₹' + p.price;
+
+    /* Stock badge */
+    var stockEl   = document.getElementById('modalStock');
+    stockEl.textContent  = p.inStock ? '✅ In Stock' : '❌ Out of Stock';
+    stockEl.className    = 'modal-stock-badge ' + (p.inStock ? 'in-stock' : 'out-stock');
+
+    /* Rating */
+    document.getElementById('modalStars').innerHTML      = renderStars(p.rating);
+    document.getElementById('modalRatingCount').textContent = '(' + p.reviews + ' reviews)';
+
+    /* Disable add if out of stock */
+    document.querySelector('.btn-modal-cart').disabled = !p.inStock;
+
+    document.getElementById('productModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('productModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function changeQty(delta) {
+    modalQty = Math.max(1, Math.min(99, modalQty + delta));
+    document.getElementById('modalQtyNum').textContent     = modalQty;
+    document.getElementById('modalTotalPrice').textContent = 'Total: ₹' + (currentProduct.price * modalQty);
+  }
+
+  function addToCartFromModal() {
+    if (!currentProduct || !currentProduct.inStock) return;
+    if (localStorage.getItem('isAdmin') === 'true') {
+      alert('Admin cannot place orders. Please use a customer account.');
+      return;
+    }
+    if (localStorage.getItem('shopOpen') === 'false') {
+      alert('🔴 Our outlet is currently closed.\n\nWe are open daily from 7:00 AM – 10:30 PM.');
+      return;
+    }
+    saveToCart(currentProduct, modalQty);
+    alert('✅ ' + modalQty + 'x ' + currentProduct.name + ' added to cart!');
+    closeModal();
+  }
+
+  function quickAdd(id) {
+    var p = allProducts.find(function(x) { return x.id === id; });
+    if (!p || !p.inStock) return;
+    if (localStorage.getItem('isAdmin') === 'true') {
+      alert('Admin cannot place orders. Please use a customer account.');
+      return;
+    }
+    if (localStorage.getItem('shopOpen') === 'false') {
+      alert('🔴 Our outlet is currently closed.\n\nWe are open daily from 7:00 AM – 10:30 PM.');
+      return;
+    }
+    saveToCart(p, 1);
+  }
+
+  /* ── Save to localStorage cart ── */
+  function saveToCart(product, qty) {
+    var items    = JSON.parse(localStorage.getItem('cartItems') || '[]');
+    var existing = items.findIndex(function(i) { return i.name === product.name; });
+
+    if (existing > -1) {
+      items[existing].qty += qty;
+    } else {
+      items.push({
+        product_id: product.id   || null,
+        name:       product.name,
+        price:      product.price,
+        qty:        qty,
+        weight:     product.weight || '',
+        img:        product.img   || product.image_url || '',
+        image_url:  product.img   || product.image_url || ''
+      });
+    }
+
+    localStorage.setItem('cartItems', JSON.stringify(items));
+
+    /* Update badge */
+    var total = items.reduce(function(s, i) { return s + i.qty; }, 0);
+    var badge = document.getElementById('cartBadge');
+    if (badge) {
+      badge.textContent     = total;
+      badge.style.transform = 'scale(1.5)';
+      setTimeout(function() { badge.style.transform = 'scale(1)'; }, 220);
+    }
+  }
+
+
+  /* ══════════════════════════
+     CART BADGE (synced from localStorage)
+  ══════════════════════════ */
+
+  function updateCartBadge(addQty) {
+    /* Read existing cart qty total */
+    var items   = JSON.parse(localStorage.getItem('cartItems') || '[]');
+    var total   = items.reduce(function(sum, i) { return sum + (i.qty || 1); }, 0);
+    total      += addQty;
+    var badge   = document.getElementById('cartBadge');
+    badge.textContent    = total;
+    badge.style.transform = 'scale(1.5)';
+    setTimeout(function() { badge.style.transform = 'scale(1)'; }, 220);
+  }
+
+  function loadCartBadge() {
+    var items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+    var total = items.reduce(function(sum, i) { return sum + (i.qty || 1); }, 0);
+    document.getElementById('cartBadge').textContent = total || 0;
+  }
+
+
+  /* ══════════════════════════
+     INIT
+  ══════════════════════════ */
+
+  /* Load query from URL */
+  (function init() {
+    var params = new URLSearchParams(window.location.search);
+    query      = params.get('q') || '';
+
+    if (query) {
+      document.getElementById('searchInput').value = query;
+      document.getElementById('btnClearInput').style.display = 'flex';
+      saveRecentSearch(query);
+    }
+
+    loadCartBadge();
+
+    /* Show loading state */
+    document.getElementById('resultsGrid').innerHTML =
+      '<p style="padding:40px;text-align:center;color:#aaa;font-size:14px;">Loading products...</p>';
+
+    /* ── Load products from API ── */
+    fetch('http://localhost:5000/api/products')
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.products && data.products.length > 0) {
+          /* Map API fields to search.html format */
+          allProducts = data.products.map(function(p) {
+            return {
+              id:       p.id,
+              name:     p.name,
+              category: p.category,
+              price:    parseFloat(p.price),
+              img:      p.image_url || '',
+              desc:     p.description || '',
+              weight:   p.weight || '',
+              inStock:  p.in_stock === 1 || p.in_stock === true,
+              rating:   parseFloat(p.rating) || 4.5,
+              reviews:  parseInt(p.reviews)  || 0
+            };
+          });
+        }
+        applyFilters();
+      })
+      .catch(function() {
+        /* If API fails show empty state */
+        applyFilters();
+      });
+  })();
+
+  /* Close dropdown when clicking outside */
+  document.addEventListener('click', function(e) {
+    if (!document.getElementById('searchWrap').contains(e.target)) {
+      document.getElementById('searchDropdown').style.display = 'none';
+    }
+  });
+
+  /* Close modal on Escape */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+</script>
+
+
+  <script>
+
+    /* ── SYNC CART BADGE from localStorage ── */
+    function syncCartBadge() {
+      var items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      var total = items.reduce(function(s, i) { return s + (i.qty || 1); }, 0);
+      /* Update all badge elements on page */
+      document.querySelectorAll('.cart-count-badge, #cartBadge').forEach(function(el) {
+        el.textContent = total || 0;
+      });
+    }
+    syncCartBadge();
+  </script>
+
+</body>
+</html>

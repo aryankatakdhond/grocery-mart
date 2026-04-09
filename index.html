@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grocery Mart - Online Grocery Store</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Our CSS file -->
+  <link rel="stylesheet" href="css/index.css" />
+</head>
+<body>
+
+  <!-- ══ SHOP CLOSED BANNER ══ -->
+  <div id="shopClosedBanner" style="display:none;">
+    <div style="background:linear-gradient(135deg,#1a2e22 0%,#2d4a35 100%);color:#fff;padding:22px 24px;font-family:'Poppins',sans-serif;border-bottom:3px solid #ff6b35;">
+      <div style="max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="background:#ff6b35;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🔴</div>
+          <div>
+            <p style="font-size:16px;font-weight:700;margin:0 0 3px;letter-spacing:0.3px;">Outlet Currently Closed</p>
+            <p style="font-size:13px;color:#a8c5b0;margin:0;">We are open daily &nbsp;<strong style="color:#7dcea0;">7:00 AM – 10:30 PM</strong>. Visit us again during store hours to place your order.</p>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;white-space:nowrap;">
+          🕐 Opens at 7:00 AM
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ORDER UPDATE TOAST ══ -->
+  <div id="orderToast" style="display:none;position:fixed;bottom:28px;right:28px;z-index:99999;font-family:'Poppins',sans-serif;animation:slideUp 0.4s ease;">
+    <style>
+      @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+      @keyframes slideDown { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(20px); } }
+    </style>
+    <div id="orderToastInner" style="background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);border-left:4px solid #2d6a4f;padding:16px 20px;min-width:280px;max-width:340px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <p style="font-size:13px;font-weight:700;color:#1a2e22;margin:0;" id="toastTitle">Order Update</p>
+        <button onclick="document.getElementById('orderToast').style.display='none'" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:16px;line-height:1;margin-left:12px;">✕</button>
+      </div>
+      <p id="toastBody" style="font-size:13px;color:#555;margin:0 0 10px;"></p>
+      <a href="notifications.html" target="_self" style="font-size:12px;color:#2d6a4f;font-weight:600;text-decoration:none;" onclick="event.stopPropagation()">View all updates →</a>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       TOP NAVBAR
+       Logo | Delivery | Search | Account | Cart
+  ══════════════════════════════════════ -->
+  <header class="top-navbar">
+
+    <!-- Logo -->
+    <a href="#" class="logo">
+      <span class="logo-icon">🛒</span>
+      <span class="logo-text">Grocery <strong>Mart</strong></span>
+    </a>
+
+    <!-- Delivery Address — click to open address picker -->
+    <div class="delivery-info" onclick="openAddressModal()" id="deliveryInfoBtn">
+      <span class="delivery-label">📍 Delivery to</span>
+      <span class="delivery-address" id="deliveryAddressText">Select your address</span>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search" id="searchInput" />
+    </div>
+
+    <!-- Account & Cart -->
+    <div class="nav-right">
+
+      <!-- Account: shows Login or Logout depending on session -->
+      <a href="login.html" class="nav-btn" id="accountBtn">
+        <span class="nav-btn-icon" id="accountIcon">👤</span>
+        <div class="nav-btn-text">
+          <span class="nav-btn-top" id="accountTop">Account</span>
+          <span class="nav-btn-bottom" id="accountBottom">Log In</span>
+        </div>
+      </a>
+
+      <!-- Notification Bell — only shown when logged in -->
+      <div class="nav-btn" id="notifBtn" style="display:none;position:relative;cursor:pointer;" onclick="toggleNotifPanel()">
+        <span class="nav-btn-icon">🔔</span>
+        <div class="nav-btn-text">
+          <span class="nav-btn-top">Updates</span>
+          <span class="nav-btn-bottom">Orders</span>
+        </div>
+        <span id="notifBadge" style="display:none;position:absolute;top:4px;right:4px;background:#e74c3c;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;align-items:center;justify-content:center;"></span>
+      </div>
+
+      <!-- Notification Mini Panel (latest only) -->
+      <div id="notifPanel" style="display:none;position:absolute;top:72px;right:160px;width:300px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.15);border:1px solid #eee;z-index:9999;font-family:'Poppins',sans-serif;overflow:hidden;">
+        <div style="padding:12px 16px;background:#1a2e22;display:flex;justify-content:space-between;align-items:center;">
+          <p style="font-size:13px;font-weight:700;color:#fff;margin:0;">🔔 Latest Update</p>
+          <button onclick="event.stopPropagation();document.getElementById('notifPanel').style.display='none';notifOpen=false;" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:16px;">✕</button>
+        </div>
+        <div id="notifLatest" style="padding:16px;"></div>
+        <div style="padding:10px 16px;border-top:1px solid #f0f0f0;text-align:center;">
+          <a href="Notification.html" target="_self" style="font-size:13px;color:#2d6a4f;font-weight:600;text-decoration:none;" onclick="event.stopPropagation()">View all notifications →</a>
+        </div>
+      </div>
+
+      <!-- Admin Panel button — only shown for admin -->
+      <a href="admin.html" class="nav-btn" id="adminPanelBtn" style="display:none;background:#fff3e0;border:1.5px solid #ffcc80;">
+        <span class="nav-btn-icon">⚙️</span>
+        <div class="nav-btn-text">
+          <span class="nav-btn-top" style="color:#e65100;">Admin</span>
+          <span class="nav-btn-bottom" style="color:#ef6c00;">Dashboard</span>
+        </div>
+      </a>
+
+      <!-- Cart — hidden for admin -->
+      <a href="cart.html" class="nav-btn cart-btn" id="cartBtn">
+        <span class="nav-btn-icon">🛒</span>
+        <div class="nav-btn-text">
+          <span class="cart-count-badge">0</span>
+          <span class="nav-btn-bottom">My Cart</span>
+        </div>
+      </a>
+
+    </div>
+  </header>
+
+
+  <!-- ══════════════════════════════════════
+       CATEGORY NAVBAR — loaded from API
+  ══════════════════════════════════════ -->
+  <nav class="category-nav">
+    <ul class="category-list" id="categoryList">
+      <!-- Loaded dynamically from database -->
+      <li class="cat-item active" data-cat="All Categories" onclick="setActive(this)">
+        <span class="cat-grid-icon">⊞</span> All Categories
+      </li>
+    </ul>
+  </nav>
+
+
+  <!-- ══════════════════════════════════════
+       MAIN CONTENT AREA
+  ══════════════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- ── HERO SECTION ──
+         Left: text + button | Right: image slider -->
+    <section class="hero-section">
+
+      <!-- Hero Left: Text -->
+      <div class="hero-left">
+        <h1 class="hero-heading">
+          We delivery<br/>
+          grocery all over<br/>
+          <span class="hero-highlight">your city</span>
+        </h1>
+        <p class="hero-sub">GET THEM ALL IN OUR STORE</p>
+        <a href="#products" class="btn-shop-now">SHOP NOW</a>
+      </div>
+
+      <!-- Hero Right: Image Slider -->
+      <div class="hero-right">
+
+        <div class="slider">
+
+          <!-- Slide 1: Vegetables -->
+          <div class="slide active">
+            <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=700&h=400&fit=crop" alt="Fresh Vegetables" class="slide-img" />
+            <div class="slide-overlay">
+              <span class="slide-label">🥦 Fresh Vegetables</span>
+            </div>
+          </div>
+
+          <!-- Slide 2: Fruits -->
+          <div class="slide">
+            <img src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=700&h=400&fit=crop" alt="Fresh Fruits" class="slide-img" />
+            <div class="slide-overlay">
+              <span class="slide-label">🍎 Fresh Fruits</span>
+            </div>
+          </div>
+
+          <!-- Slide 3: Dairy & Bakery -->
+          <div class="slide">
+            <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=700&h=400&fit=crop" alt="Bakery" class="slide-img" />
+            <div class="slide-overlay">
+              <span class="slide-label">🍞 Bakery & Dairy</span>
+            </div>
+          </div>
+
+        </div>
+        <!-- end .slider -->
+
+        <!-- Prev / Next arrows -->
+        <button class="slider-btn prev" onclick="changeSlide(-1)">&#8249;</button>
+        <button class="slider-btn next" onclick="changeSlide(1)">&#8250;</button>
+
+        <!-- Dots -->
+        <div class="slider-dots">
+          <span class="dot active" onclick="goToSlide(0)"></span>
+          <span class="dot" onclick="goToSlide(1)"></span>
+          <span class="dot" onclick="goToSlide(2)"></span>
+        </div>
+
+      </div>
+      <!-- end hero-right -->
+
+    </section>
+    <!-- end hero-section -->
+
+
+    <!-- ── POPULAR RIGHT NOW ── -->
+    <section class="products-section" id="products">
+
+      <!-- Section Header -->
+      <div class="section-header">
+        <h2 class="section-title" id="popularTitle">Popular right now</h2>
+        <a href="#" class="view-all-btn" id="viewAllPopular" onclick="toggleViewAll('popular'); return false;">View All &#8250;</a>
+      </div>
+
+      <!-- Products Slider (shown by default) -->
+      <div class="products-slider-wrapper" id="popularSlider">
+        <!-- Left Arrow -->
+        <button class="prod-arrow prod-prev" onclick="scrollProducts(-1)">&#8249;</button>
+        <!-- Products Row -->
+        <div class="products-row" id="productsRow">
+
+        </div>
+        <!-- end .products-row -->
+
+        <!-- Right Arrow -->
+        <button class="prod-arrow prod-next" onclick="scrollProducts(1)">&#8250;</button>
+
+      </div>
+      <!-- end .products-slider-wrapper -->
+
+    </section>
+    <!-- end products-section -->
+
+    <!-- ── ALL PRODUCTS GRID (shown when View All clicked) ── -->
+    <section class="products-section" id="allProductsSection" style="display:none;">
+      <div class="section-header">
+        <h2 class="section-title" id="allProductsTitle">All Products</h2>
+        <a href="#" class="view-all-btn" onclick="toggleViewAll('popular'); return false;">&#8249; Show Less</a>
+      </div>
+      <div class="all-products-grid" id="allProductsGrid"></div>
+    </section>
+
+
+    <!-- ── DEALS SECTION ── -->
+    <section class="products-section">
+
+      <div class="section-header">
+        <h2 class="section-title">Today's Deals 🔥</h2>
+        <a href="#" class="view-all-btn" id="viewAllDeals" onclick="toggleViewAll('deals'); return false;">View All &#8250;</a>
+      </div>
+
+      <div class="products-slider-wrapper" id="dealsSlider">
+        <button class="prod-arrow prod-prev" onclick="scrollDeals(-1)">&#8249;</button>
+
+        <div class="products-row" id="dealsRow">
+
+        </div>
+        <!-- end deals row -->
+
+        <button class="prod-arrow prod-next" onclick="scrollDeals(1)">&#8250;</button>
+      </div>
+
+    </section>
+
+    <!-- ── ALL DEALS GRID (shown when View All clicked) ── -->
+    <section class="products-section" id="allDealsSection" style="display:none;">
+      <div class="section-header">
+        <h2 class="section-title">All Deals 🔥</h2>
+        <a href="#" class="view-all-btn" onclick="toggleViewAll('deals'); return false;">&#8249; Show Less</a>
+      </div>
+      <div class="all-products-grid" id="allDealsGrid"></div>
+    </section>
+
+
+    <!-- ── PROMO BANNER ── -->
+    <section class="promo-banner">
+      <div class="promo-left">
+        <p class="promo-tag">Special Offer</p>
+        <h2 class="promo-title">Fresh Vegetables<br/><span>Up to 40% Off</span></h2>
+        <p class="promo-sub">Only this weekend. Limited stock available.</p>
+        <a href="#products" class="btn-shop-now">SHOP NOW</a>
+      </div>
+      <div class="promo-right">
+        <img src="https://cdn.pixabay.com/photo/2022/08/01/07/59/vegetables-7357585_1280.png" alt="Fresh Vegetables" class="promo-img" />
+      </div>
+    </section>
+
+  </main>
+  <!-- end main-content -->
+
+
+  <!-- ══════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="footer-top">
+
+      <div class="footer-col">
+        <div class="footer-logo">🛒 Grocery <strong>Mart</strong></div>
+        <p class="footer-desc">Your trusted online grocery store. Fresh products delivered fast.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="search.html">Shop</a></li>
+          <li><a href="index.html#deals">Deals</a></li>
+          <li><a href="#">About Us</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Customer Care</h4>
+        <ul>
+          <li><a href="profile.html">Track Order</a></li>
+          <li><a href="#">Returns</a></li>
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li>📧 <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c6a7a2abafa886a1b4a9a5a3b4bfaba7b4b2e8a5a9ab">[email&#160;protected]</a></li>
+          <li>📞 +91 9082793276</li>
+          <li>📍 Kharghar, Navi Mumbai</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2025 Grocery Mart. All rights reserved.</p>
+      <div class="footer-pay">
+        <span>📱 UPI</span>
+        <span>💵 COD</span>
+        <span>💳 Card</span>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ══════════════════════════════════════
+       JAVASCRIPT
+  ══════════════════════════════════════ -->
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+
+    /* ── LOGIN STATE: Check if user is logged in ──
+       We store the user's name in localStorage after login.
+       localStorage keeps data even after the browser is closed. */
+
+    function checkLoginState() {
+      var userName      = localStorage.getItem('loggedInUser');
+      var isAdmin       = localStorage.getItem('isAdmin') === 'true';
+
+      var accountBtn    = document.getElementById('accountBtn');
+      var accountIcon   = document.getElementById('accountIcon');
+      var accountTop    = document.getElementById('accountTop');
+      var accountBottom = document.getElementById('accountBottom');
+      var adminPanelBtn = document.getElementById('adminPanelBtn');
+      var cartBtn       = document.getElementById('cartBtn');
+
+      if (userName) {
+        /* User IS logged in — show their name */
+        accountIcon.textContent   = '👋';
+        accountTop.textContent    = 'Hello, ' + userName;
+        accountBottom.textContent = isAdmin ? 'Admin' : 'My Account';
+        accountBtn.href           = isAdmin ? '#' : 'profile.html';
+        accountBtn.onclick        = isAdmin ? function(e) { e.preventDefault(); } : function(e) {
+          if (e.shiftKey) { handleLogout(); return false; }
+          window.location.href = 'profile.html';
+          return false;
+        };
+
+        /* Green tint */
+        accountBtn.style.backgroundColor = '#f0f7f0';
+        accountBtn.style.border          = '1.5px solid #d8f3dc';
+        accountTop.style.color           = '#2d6a4f';
+        accountBottom.style.color        = '#2d6a4f';
+
+        if (isAdmin) {
+          /* Show Admin Panel button, hide Cart */
+          if (adminPanelBtn) adminPanelBtn.style.display = 'flex';
+          if (cartBtn)       cartBtn.style.display       = 'none';
+        } else {
+          /* Regular user — hide Admin button, show Cart */
+          if (adminPanelBtn) adminPanelBtn.style.display = 'none';
+          if (cartBtn)       cartBtn.style.display       = 'flex';
+        }
+
+      } else {
+        /* Not logged in */
+        accountIcon.textContent   = '👤';
+        accountTop.textContent    = 'Account';
+        accountBottom.textContent = 'Log In';
+        accountBtn.href           = 'login.html';
+        accountBtn.onclick        = null;
+        accountBtn.style.backgroundColor = '';
+        accountBtn.style.border          = '';
+        accountTop.style.color           = '';
+        accountBottom.style.color        = '';
+        if (adminPanelBtn) adminPanelBtn.style.display = 'none';
+        if (cartBtn)       cartBtn.style.display       = 'flex';
+      }
+    }
+
+    /* ── LOGOUT: Clear session and refresh navbar ── */
+    function handleLogout() {
+      var confirmed = confirm('Are you sure you want to log out?');
+      if (confirmed) {
+        localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('token');
+        localStorage.removeItem('isAdmin');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userId');
+        checkLoginState();
+        alert('You have been logged out. See you soon! 👋');
+      }
+    }
+
+    /* ══════════════════════════════════════
+       API — Load products from backend
+    ══════════════════════════════════════ */
+
+    var API = 'http://localhost:5000';
+
+    /* ── FETCH SHOP STATUS from API on page load ── */
+    function checkShopStatus() {
+      fetch(API + '/api/shop/status')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var isOpen = data.shop_open !== false;
+          localStorage.setItem('shopOpen', isOpen ? 'true' : 'false');
+          if (!isOpen) {
+            document.getElementById('shopClosedBanner').style.display = 'block';
+          } else {
+            document.getElementById('shopClosedBanner').style.display = 'none';
+          }
+        })
+        .catch(function(err) {
+          console.error('Shop status fetch failed:', err);
+          // Fail open — assume shop is open if API fails
+          localStorage.setItem('shopOpen', 'true');
+          document.getElementById('shopClosedBanner').style.display = 'none';
+        });
+    }
+
+    /* ── ADD TO CART from product card (DB product object) ── */
+    function addToCartFromCard(p) {
+      if (localStorage.getItem('isAdmin') === 'true') {
+        alert('Admin cannot place orders. Please use a customer account.');
+        return;
+      }
+      if (localStorage.getItem('shopOpen') === 'false') {
+        alert('🔴 Our outlet is currently closed.\n\nWe are open daily from 7:00 AM – 10:30 PM.\nPlease visit us again during store hours.');
+        return;
+      }
+      saveToCart({
+        id:       p.id,
+        name:     p.name,
+        price:    '₹' + p.price,
+        priceNum: parseFloat(p.price),
+        weight:   p.weight  || '',
+        img:      p.image_url || '',
+        category: p.category || ''
+      }, 1);
+    }
+
+    /* ── Build a product card HTML string ── */
+    function makeCard(p, index, isDeals) {
+      var price    = '₹' + p.price;
+      var oldPrice = p.old_price ? '<span class="price-old">₹' + p.old_price + '</span>' : '';
+      var badge    = isDeals && p.old_price
+        ? '<div class="deal-badge">-' + Math.round((1 - p.price / p.old_price) * 100) + '%</div>'
+        : '';
+      var safeP    = encodeURIComponent(JSON.stringify(p));
+
+      return '<div class="product-card" onclick="openProductById(' + p.id + ')">' +
+          badge +
+          '<div class="product-img">' +
+            '<img src="' + p.image_url + '" alt="' + p.name + '" loading="lazy"/>' +
+          '</div>' +
+          '<div class="product-info">' +
+            '<p class="product-brand">Grocery Mart</p>' +
+            '<p class="product-name">' + p.name + '</p>' +
+            '<p class="product-weight">' + p.weight + '</p>' +
+            '<div class="product-footer">' +
+              '<div>' + price + ' ' + oldPrice + '</div>' +
+              '<button class="btn-add-cart" onclick="event.stopPropagation(); addToCartFromCard(JSON.parse(decodeURIComponent(\'' + safeP + '\')))">+</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    /* ── Load FEATURED products into Popular row ── */
+    function loadFeaturedProducts() {
+      var row = document.getElementById('productsRow');
+      row.innerHTML = '<p style="padding:20px;color:#aaa;">Loading...</p>';
+
+      fetch(API + '/api/products/featured')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (!data.products || data.products.length === 0) {
+            row.innerHTML = '<p style="padding:20px;color:#aaa;">No products found.</p>';
+            return;
+          }
+          /* Store globally for modal + category filter */
+          productData = data.products.map(function(p) {
+            return {
+              id:       p.id,
+              name:     p.name,
+              price:    '₹' + p.price,
+              priceNum: parseFloat(p.price),
+              weight:   p.weight,
+              img:      p.image_url,
+              desc:     p.description,
+              category: p.category
+            };
+          });
+          row.innerHTML = data.products.map(function(p, i) {
+            return makeCard(p, i, false);
+          }).join('');
+        })
+        .catch(function() {
+          /* Fallback to hardcoded data if backend not available */
+          row.innerHTML = productData.map(function(p, i) {
+            return makeCard({
+              id: i, name: p.name, price: p.priceNum,
+              old_price: null, weight: p.weight,
+              image_url: p.img, description: p.desc, category: p.category
+            }, i, false);
+          }).join('');
+        });
+    }
+
+    /* ── Load DEALS products into Deals row ── */
+    function loadDealsProducts() {
+      var row = document.getElementById('dealsRow');
+      row.innerHTML = '<p style="padding:20px;color:#aaa;">Loading...</p>';
+
+      fetch(API + '/api/products/deals')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (!data.products || data.products.length === 0) {
+            row.innerHTML = '<p style="padding:20px;color:#aaa;">No deals found.</p>';
+            return;
+          }
+          /* Update dealsData for View All */
+          dealsData = data.products.map(function(p) {
+            return {
+              id:       p.id,
+              name:     p.name,
+              price:    '₹' + p.price,
+              priceNum: parseFloat(p.price),
+              oldPrice: p.old_price ? '₹' + p.old_price : null,
+              discount: p.old_price ? '-' + Math.round((1 - p.price / p.old_price) * 100) + '%' : '',
+              weight:   p.weight,
+              img:      p.image_url,
+              category: p.category
+            };
+          });
+          row.innerHTML = data.products.map(function(p, i) {
+            return makeCard(p, i, true);
+          }).join('');
+        })
+        .catch(function() {
+          row.innerHTML = dealsData.map(function(p, i) {
+            return makeCard({
+              id: i, name: p.name, price: p.priceNum,
+              old_price: null, weight: p.weight,
+              image_url: p.img, category: p.category
+            }, i, true);
+          }).join('');
+        });
+    }
+
+    /* ── Open product modal by ID from database ── */
+    function openProductById(id) {
+      fetch(API + '/api/products/' + id)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (!data.product) return;
+          var p = data.product;
+          /* Map DB fields to modal fields */
+          var mapped = {
+            id:       p.id,
+            name:     p.name,
+            price:    '₹' + p.price,
+            priceNum: parseFloat(p.price),
+            weight:   p.weight,
+            img:      p.image_url,
+            desc:     p.description,
+            category: p.category
+          };
+          /* Find index in productData or use 0 */
+          var idx = productData.findIndex(function(x) { return x.id === p.id; });
+          if (idx === -1) {
+            productData.push(mapped);
+            idx = productData.length - 1;
+          }
+          openProduct(idx);
+        })
+        .catch(function() {
+          console.log('Could not load product details.');
+        });
+    }
+
+    /* ── Filter products by category from API ── */
+    function loadByCategory(cat) {
+      var row = document.getElementById('productsRow');
+      row.innerHTML = '<p style="padding:20px;color:#aaa;">Loading...</p>';
+
+      var url = cat === 'All Categories'
+        ? API + '/api/products/featured'
+        : API + '/api/products/category/' + encodeURIComponent(cat);
+
+      fetch(url)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (!data.products || data.products.length === 0) {
+            row.innerHTML = '<p style="padding:20px;color:#aaa;">No products in this category.</p>';
+            return;
+          }
+          productData = data.products.map(function(p) {
+            return {
+              id: p.id, name: p.name, price: '₹' + p.price,
+              priceNum: parseFloat(p.price), weight: p.weight,
+              img: p.image_url, desc: p.description, category: p.category
+            };
+          });
+          row.innerHTML = data.products.map(function(p, i) {
+            return makeCard(p, i, false);
+          }).join('');
+        })
+        .catch(function() {
+          row.innerHTML = '<p style="padding:20px;color:#aaa;">Could not load products.</p>';
+        });
+    }
+
+    /* ── NOTIFICATION BELL ── */
+    var notifOpen = false;
+
+    function toggleNotifPanel() {
+      notifOpen = !notifOpen;
+      var panel = document.getElementById('notifPanel');
+      panel.style.display = notifOpen ? 'block' : 'none';
+
+      if (notifOpen) {
+        /* Mark all as seen */
+        localStorage.setItem('notifLastSeen', Date.now());
+        var badge = document.getElementById('notifBadge');
+        if (badge) badge.style.display = 'none';
+        /* Show latest notification in mini panel */
+        renderLatestNotif();
+      }
+    }
+
+    /* Close panel on outside click */
+    document.addEventListener('click', function(e) {
+      var btn   = document.getElementById('notifBtn');
+      var panel = document.getElementById('notifPanel');
+      if (btn && panel && !btn.contains(e.target) && !panel.contains(e.target)) {
+        panel.style.display = 'none';
+        notifOpen = false;
+      }
+    });
+
+    /* Render only the LATEST notification in mini panel */
+    function renderLatestNotif() {
+      var notifs  = JSON.parse(localStorage.getItem('orderNotifs') || '[]');
+      var el      = document.getElementById('notifLatest');
+      if (!el) return;
+
+      if (notifs.length === 0) {
+        el.innerHTML = '<p style="font-size:13px;color:#aaa;text-align:center;padding:8px 0;">No updates yet</p>';
+        return;
+      }
+
+      var n    = notifs[notifs.length - 1]; /* most recent */
+      var sBg  = { confirmed:'#e3f2fd', packed:'#fff8e1', dispatched:'#fff3e0', delivered:'#e8f5e9', cancelled:'#fce4ec' };
+      var sClr = { confirmed:'#1565c0', packed:'#f57f17', dispatched:'#e65100', delivered:'#2d6a4f', cancelled:'#c62828' };
+      var sIco = { confirmed:'\u2705', packed:'\u{1F4E6}', dispatched:'\u{1F69A}', delivered:'\u{1F389}', cancelled:'\u274C' };
+
+      el.innerHTML =
+        '<div style="display:flex;align-items:center;gap:12px;">' +
+          '<div style="width:44px;height:44px;border-radius:50%;background:' + (sBg[n.status]||'#f5f5f5') + ';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">' + (sIco[n.status]||'\u{1F4CB}') + '</div>' +
+          '<div>' +
+            '<p style="font-size:13px;font-weight:700;color:#1a2e22;margin:0 0 3px;">Order ' + n.orderNumber + '</p>' +
+            '<p style="font-size:12px;color:#666;margin:0 0 6px;">Status changed to</p>' +
+            '<span style="background:' + (sBg[n.status]||'#f5f5f5') + ';color:' + (sClr[n.status]||'#555') + ';padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;">' + n.status.charAt(0).toUpperCase() + n.status.slice(1) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<p style="font-size:11px;color:#aaa;margin:10px 0 0;text-align:right;">' +
+          new Date(n.time).toLocaleString('en-IN', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) +
+        '</p>';
+    }
+
+    /* Show TOAST popup for a new update */
+    function showToast(n) {
+      var sIco  = { confirmed:'\u2705', packed:'\u{1F4E6}', dispatched:'\u{1F69A}', delivered:'\u{1F389}', cancelled:'\u274C' };
+      var sText = { confirmed:'confirmed', packed:'packed and being prepared', dispatched:'out for delivery', delivered:'delivered! Enjoy \u{1F60A}', cancelled:'cancelled' };
+      var sBorder = { confirmed:'#1565c0', packed:'#f57f17', dispatched:'#e65100', delivered:'#2d6a4f', cancelled:'#c62828' };
+
+      var toast = document.getElementById('orderToast');
+      var title = document.getElementById('toastTitle');
+      var body  = document.getElementById('toastBody');
+      var inner = document.getElementById('orderToastInner');
+
+      if (!toast) return;
+
+      title.textContent = (sIco[n.status]||'\u{1F4CB}') + ' Order ' + n.orderNumber + ' Update';
+      body.textContent  = 'Your order has been ' + (sText[n.status]||n.status) + '.';
+      inner.style.borderLeftColor = sBorder[n.status] || '#2d6a4f';
+
+      toast.style.display    = 'block';
+      toast.style.animation  = 'slideUp 0.4s ease';
+
+      /* Auto-hide after 5 seconds */
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(function() {
+        toast.style.animation = 'slideDown 0.4s ease forwards';
+        setTimeout(function() { toast.style.display = 'none'; }, 400);
+      }, 5000);
+    }
+
+    /* Update badge count */
+    function updateBadge() {
+      var notifs   = JSON.parse(localStorage.getItem('orderNotifs') || '[]');
+      var lastSeen = parseInt(localStorage.getItem('notifLastSeen') || '0');
+      var unread   = notifs.filter(function(n) { return n.time > lastSeen; }).length;
+      var badge    = document.getElementById('notifBadge');
+      if (badge) {
+        badge.textContent   = unread;
+        badge.style.display = unread > 0 ? 'flex' : 'none';
+      }
+    }
+
+    /* Poll for new order status updates */
+    function pollOrderUpdates() {
+      var token   = localStorage.getItem('token');
+      var isAdmin = localStorage.getItem('isAdmin') === 'true';
+      if (!token || isAdmin) return;
+
+      fetch('http://localhost:5000/api/orders/mine', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (!data.success) return;
+
+        var notifs   = JSON.parse(localStorage.getItem('orderNotifs') || '[]');
+        var existing = {};
+        notifs.forEach(function(n) { existing[n.orderNumber + '_' + n.status] = true; });
+
+        var newItems = [];
+        data.orders.forEach(function(o) {
+          /* Skip initial confirmed — user already saw confirmation page */
+          if (o.status === 'confirmed') return;
+          var key = o.order_number + '_' + o.status;
+          if (!existing[key]) {
+            var item = { orderNumber: o.order_number, status: o.status, time: Date.now() };
+            notifs.push(item);
+            newItems.push(item);
+            existing[key] = true;
+          }
+        });
+
+        if (newItems.length > 0) {
+          localStorage.setItem('orderNotifs', JSON.stringify(notifs));
+          updateBadge();
+          /* Show toast for LATEST new update only */
+          showToast(newItems[newItems.length - 1]);
+        }
+      })
+      .catch(function() {});
+    }
+
+    function initNotifBell() {
+      var user    = localStorage.getItem('loggedInUser');
+      var isAdmin = localStorage.getItem('isAdmin') === 'true';
+      var btn     = document.getElementById('notifBtn');
+      if (btn) btn.style.display = (user && !isAdmin) ? 'flex' : 'none';
+      if (user && !isAdmin) {
+        updateBadge();
+        pollOrderUpdates();
+        setInterval(pollOrderUpdates, 30000);
+      }
+    }
+
+    /* Navigate to notifications page */
+    function goToNotifications(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = 'notifications.html';
+    }
+
+    /* ── Load categories from API into nav ── */
+    function loadCategories() {
+      fetch(API + '/api/products/categories/all')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          var list = document.getElementById('categoryList');
+          if (!list) return;
+
+          /* If no categories from DB, use fallback */
+          var cats = (data.success && data.categories && data.categories.length > 0)
+            ? data.categories
+            : [
+                {emoji:'🍎', name:'Fruits'},
+                {emoji:'🥦', name:'Vegetables'},
+                {emoji:'🛍️', name:'Grocery'},
+                {emoji:'🍞', name:'Bakery & Pastry'},
+                {emoji:'🧃', name:'Beverages'},
+                {emoji:'🥛', name:'Dairy'}
+              ];
+
+          var html = '<li class="cat-item active" data-cat="All Categories" onclick="setActive(this)">' +
+                       '<span class="cat-grid-icon">⊞</span> All Categories' +
+                     '</li>';
+          cats.forEach(function(cat) {
+            html += '<li class="cat-item" data-cat="' + cat.name + '" onclick="setActive(this)">' +
+                      (cat.emoji ? cat.emoji + ' ' : '') + cat.name +
+                    '</li>';
+          });
+          list.innerHTML = html;
+        })
+        .catch(function() {
+          /* Fallback on network error */
+          var list = document.getElementById('categoryList');
+          if (!list) return;
+          list.innerHTML =
+            '<li class="cat-item active" data-cat="All Categories" onclick="setActive(this)"><span class="cat-grid-icon">⊞</span> All Categories</li>' +
+            '<li class="cat-item" data-cat="Fruits" onclick="setActive(this)">🍎 Fruits</li>' +
+            '<li class="cat-item" data-cat="Vegetables" onclick="setActive(this)">🥦 Vegetables</li>' +
+            '<li class="cat-item" data-cat="Grocery" onclick="setActive(this)">🛍️ Grocery</li>' +
+            '<li class="cat-item" data-cat="Bakery &amp; Pastry" onclick="setActive(this)">🍞 Bakery &amp; Pastry</li>' +
+            '<li class="cat-item" data-cat="Beverages" onclick="setActive(this)">🧃 Beverages</li>' +
+            '<li class="cat-item" data-cat="Dairy" onclick="setActive(this)">🥛 Dairy</li>';
+        });
+    }
+
+    /* Clear stale login redirect */
+    localStorage.removeItem('redirectAfterLogin');
+
+    /* ── Run on page load ── */
+    checkLoginState();
+    initNotifBell();
+    loadCategories();
+    loadFeaturedProducts();
+    loadDealsProducts();
+    checkShopStatus();
+
+    /* ── CHECK SHOP STATUS EVERY 8 SECONDS (So users see updates quickly) ── */
+    setInterval(checkShopStatus, 8000);
+
+    /* ── SHOP STATUS: Show banner if admin closed the shop ── */
+    (function() {
+      if (localStorage.getItem('shopOpen') === 'false') {
+        document.getElementById('shopClosedBanner').style.display = 'block';
+      }
+    })();
+
+
+    /* ── CATEGORY NAV: set active tab ── */
+    function setActive(el) {
+      /* Highlight selected tab */
+      document.querySelectorAll('.cat-item').forEach(function(i) {
+        i.classList.remove('active');
+      });
+      el.classList.add('active');
+
+      /* Get category from data-cat attribute */
+      var catText = el.getAttribute('data-cat') || 'All Categories';
+
+      /* Update section title */
+      var sectionTitle = document.querySelector('#products .section-title');
+      if (sectionTitle) {
+        sectionTitle.textContent = catText === 'All Categories' ? 'Popular right now' : catText;
+      }
+
+      /* Collapse View All if open */
+      var allSec  = document.getElementById('allProductsSection');
+      var slider  = document.getElementById('popularSlider');
+      var viewBtn = document.getElementById('viewAllPopular');
+      if (allSec && allSec.style.display !== 'none') {
+        allSec.style.display = 'none';
+        slider.style.display = 'flex';
+        viewBtn.innerHTML    = 'View All &#8250;';
+      }
+
+      /* Load from API */
+      loadByCategory(catText);
+    }
+
+
+    /* ── HERO SLIDER ── */
+    var currentSlide = 0;
+
+    function changeSlide(direction) {
+      var slides = document.querySelectorAll('.slide');
+      var dots   = document.querySelectorAll('.dot');
+
+      /* Remove active from current slide */
+      slides[currentSlide].classList.remove('active');
+      dots[currentSlide].classList.remove('active');
+
+      /* Calculate next slide index */
+      currentSlide = currentSlide + direction;
+
+      /* Wrap around: if past last go to first, if before first go to last */
+      if (currentSlide >= slides.length) { currentSlide = 0; }
+      if (currentSlide < 0)              { currentSlide = slides.length - 1; }
+
+      /* Show new slide */
+      slides[currentSlide].classList.add('active');
+      dots[currentSlide].classList.add('active');
+    }
+
+    function goToSlide(index) {
+      var slides = document.querySelectorAll('.slide');
+      var dots   = document.querySelectorAll('.dot');
+
+      slides[currentSlide].classList.remove('active');
+      dots[currentSlide].classList.remove('active');
+
+      currentSlide = index;
+
+      slides[currentSlide].classList.add('active');
+      dots[currentSlide].classList.add('active');
+    }
+
+    /* Auto-play slider every 4 seconds */
+    setInterval(function() {
+      changeSlide(1);
+    }, 4000);
+
+
+    /* ── PRODUCTS ROW: scroll left or right ── */
+    function scrollProducts(direction) {
+      var row = document.getElementById('productsRow');
+      /* Scroll by 220px per click */
+      row.scrollLeft = row.scrollLeft + (direction * 220);
+    }
+
+    function scrollDeals(direction) {
+      var row = document.getElementById('dealsRow');
+      row.scrollLeft = row.scrollLeft + (direction * 220);
+    }
+
+
+    /* ── DEALS DATA (for View All grid) ── */
+    var dealsData = [
+      { name:'Fresh Watermelon (Whole)', price:'₹79',  oldPrice:'₹99',  discount:'-20%', weight:'3 kg',   img:'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=300&h=200&fit=crop',    category:'Fruits' },
+      { name:'Black Seedless Grapes',   price:'₹89',  oldPrice:'₹105', discount:'-15%', weight:'500 g',  img:'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=300&h=200&fit=crop',    category:'Fruits' },
+      { name:'Alphonso Mango (Pack)',   price:'₹1120',oldPrice:'₹1499',discount:'-25%', weight:'1 kg',   img:'https://plantskingdom.in/cdn/shop/products/Background-hd-Mango-Wallpaper-Download.jpg?v=1657427057', category:'Fruits' },
+      { name:'Mushrooms',              price:'₹54',  oldPrice:'₹60',  discount:'-10%', weight:'400 g',  img:'https://m.media-amazon.com/images/I/71XMKwfQCzL.jpg',                                  category:'Vegetables' },
+      { name:'Fresh Strawberries',     price:'₹99',  oldPrice:'₹140', discount:'-30%', weight:'250 g',  img:'https://images.unsplash.com/photo-1543528176-61b239494933?w=300&h=200&fit=crop',        category:'Fruits' },
+      { name:'Extra Virgin Olive Oil', price:'₹499', oldPrice:'₹609', discount:'-18%', weight:'750 ml', img:'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&h=200&fit=crop',     category:'Grocery' },
+      { name:'Full Cream Milk',        price:'₹55',  oldPrice:'₹62',  discount:'-11%', weight:'1 litre',img:'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=300&h=200&fit=crop',        category:'Dairy' },
+      { name:'Butter Croissant',       price:'₹29',  oldPrice:'₹35',  discount:'-17%', weight:'2 pcs',  img:'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=300&h=200&fit=crop',        category:'Bakery & Pastry' },
+    ];
+
+
+    /* ── VIEW ALL TOGGLE ── */
+    function toggleViewAll(type) {
+
+      if (type === 'popular') {
+        var slider  = document.getElementById('popularSlider');
+        var allSec  = document.getElementById('allProductsSection');
+        var viewBtn = document.getElementById('viewAllPopular');
+        var showing = allSec.style.display !== 'none';
+
+        if (showing) {
+          /* Collapse back to slider */
+          allSec.style.display  = 'none';
+          slider.style.display  = 'flex';
+          viewBtn.innerHTML     = 'View All &#8250;';
+        } else {
+          /* Show full grid — fetch ALL products from API */
+          slider.style.display  = 'none';
+          allSec.style.display  = 'block';
+          viewBtn.innerHTML     = '&#8249; Show Less';
+
+          var activeCat = document.querySelector('.cat-item.active');
+          var cat       = activeCat ? (activeCat.getAttribute('data-cat') || 'All Categories') : 'All Categories';
+          var grid      = document.getElementById('allProductsGrid');
+
+          document.getElementById('allProductsTitle').textContent =
+            cat === 'All Categories' ? 'All Products' : cat;
+
+          grid.innerHTML = '<p style="padding:20px;color:#aaa;">Loading...</p>';
+
+          var apiUrl = cat === 'All Categories'
+            ? 'http://localhost:5000/api/products'
+            : 'http://localhost:5000/api/products/category/' + encodeURIComponent(cat);
+
+          fetch(apiUrl)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              var products = data.products || [];
+              if (products.length === 0) {
+                grid.innerHTML = '<p style="padding:20px;color:#aaa;">No products found.</p>';
+                return;
+              }
+              buildAllGrid('allProductsGrid', products.map(function(p) {
+                return { id: p.id, name: p.name, priceNum: parseFloat(p.price),
+                         price: '\u20B9' + p.price, weight: p.weight,
+                         img: p.image_url, desc: p.description, category: p.category,
+                         old_price: p.old_price, rating: p.rating, in_stock: p.in_stock };
+              }), false);
+            })
+            .catch(function() {
+              /* Fallback to already-loaded productData */
+              var filtered = cat === 'All Categories'
+                ? productData
+                : productData.filter(function(p) { return p.category === cat; });
+              buildAllGrid('allProductsGrid', filtered, false);
+            });
+
+          allSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+
+      if (type === 'deals') {
+        var dSlider  = document.getElementById('dealsSlider');
+        var dAllSec  = document.getElementById('allDealsSection');
+        var dViewBtn = document.getElementById('viewAllDeals');
+        var dShowing = dAllSec.style.display !== 'none';
+
+        if (dShowing) {
+          dAllSec.style.display  = 'none';
+          dSlider.style.display  = 'flex';
+          dViewBtn.innerHTML     = 'View All &#8250;';
+        } else {
+          dSlider.style.display  = 'none';
+          dAllSec.style.display  = 'block';
+          dViewBtn.innerHTML     = '&#8249; Show Less';
+          buildAllGrid('allDealsGrid', dealsData, true);
+          dAllSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+
+
+    /* ── BUILD FULL GRID LINE BY LINE ── */
+    function buildAllGrid(gridId, data, isDeals) {
+      var grid = document.getElementById(gridId);
+      grid.innerHTML = '';
+
+      data.forEach(function(p, i) {
+        var card = document.createElement('div');
+        card.className = 'product-card all-grid-card';
+
+        /* Make clickable — use product id if available, else index */
+        if (!isDeals) {
+          card.style.cursor = 'pointer';
+          card.setAttribute('onclick', 'openProductById(' + (p.id || 0) + ', this)');
+        }
+
+        var displayPrice = p.price || ('\u20B9' + p.priceNum);
+        var oldP = p.old_price ? '<span class="price-old">\u20B9' + p.old_price + '</span>' : '';
+
+        card.innerHTML =
+          '<div class="product-img">' +
+            (isDeals ? '<div class="deal-badge">' + (p.discount || '') + '</div>' : '') +
+            '<img src="' + (p.img || p.image_url || '') + '" alt="' + p.name + '" loading="lazy"/>' +
+          '</div>' +
+          '<div class="product-info">' +
+            '<p class="product-brand">Grocery Mart</p>' +
+            '<p class="product-name">' + p.name + '</p>' +
+            '<p class="product-weight">' + (p.weight || '') + '</p>' +
+            '<div class="product-footer">' +
+              '<div>' +
+                '<span class="product-price">' + displayPrice + '</span>' + oldP +
+              '</div>' +
+              '<button class="btn-add-cart" onclick="event.stopPropagation(); addToCart(\'' + p.name.replace(/'/g, "\\'") + '\')">+</button>' +
+            '</div>' +
+          '</div>';
+        grid.appendChild(card);
+      });
+    }
+
+
+    /* Open product modal by ID — used by View All grid */
+    function openProductById(id, cardEl) {
+      fetch('http://localhost:5000/api/products/' + id)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.product) return;
+          var p = data.product;
+          var idx = productData.findIndex(function(x) { return x.id === p.id; });
+          if (idx >= 0) {
+            openProduct(idx);
+          } else {
+            /* Product not in productData — push it and open */
+            productData.push({
+              id: p.id, name: p.name, price: '\u20B9' + p.price,
+              priceNum: parseFloat(p.price), weight: p.weight,
+              img: p.image_url, desc: p.description, category: p.category
+            });
+            openProduct(productData.length - 1);
+          }
+        })
+        .catch(function() { console.error('Could not load product', id); });
+    }
+
+
+var productData = [
+  { name: "Avocado - Medium (Each)", price: "₹120", priceNum: 120, weight: "2 kg", img: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=300&h=200&fit=crop", desc: "A creamy, nutrient-rich avocado perfect for salads, toast, and smoothies. Rich in healthy fats and vitamins.", category: "Fruits" },
+  { name: "Beetroot", price: "₹149", priceNum: 149, weight: "250 g", img: "https://cpimg.tistatic.com/11530038/b/7/Fresh-Beetroot.jpeg", desc: "Farm-fresh beetroot packed with iron and antioxidants. Great for juices, soups, and salads.", category: "Vegetables" },
+  { name: "Green Fresh Broccoli", price: "₹65", priceNum: 65, weight: "500 g", img: "https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?w=300&h=200&fit=crop", desc: "Crisp and fresh broccoli florets, rich in vitamins C and K. Perfect for stir-fry or steaming.", category: "Vegetables" },
+  { name: "Organic Cabbage", price: "₹55", priceNum: 55, weight: "1 kg", img: "https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=300&h=200&fit=crop", desc: "Organic red cabbage, crunchy and colourful. Ideal for salads, coleslaw, and stir-fry dishes.", category: "Vegetables" },
+  { name: "Organic Spring Onion", price: "₹30", priceNum: 30, weight: "200 g", img: "https://www.veggycation.com.au/siteassets/veggycationvegetable/spring-onions.jpg", desc: "Tender spring onions with a mild, fresh flavour. Great as garnish or in Asian dishes.", category: "Vegetables" },
+  { name: "Farm Fresh Green Lemon", price: "₹45", priceNum: 45, weight: "500 g", img: "https://assets.clevelandclinic.org/transform/23b87888-c044-4c32-977a-1635af87fa22/lemons-2178111697", desc: "Freshly picked green lemons bursting with vitamin C. Perfect for cooking, drinks, and dressings.", category: "Fruits" },
+  { name: "Fresh Red Tomatoes", price: "₹40", priceNum: 40, weight: "1 kg", img: "https://doorkisan.com/wp-content/uploads/2016/05/upload_1e46ebbf78004709973c6b679673f94c.jpg", desc: "Juicy, ripe red tomatoes straight from the farm. A kitchen staple for curries, salads, and sauces.", category: "Vegetables" },
+  { name: "Organic Baby Carrots", price: "₹35", priceNum: 35, weight: "500 g", img: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=300&h=200&fit=crop", desc: "Sweet and crunchy baby carrots, packed with beta-carotene. Great for snacking or cooking.", category: "Vegetables" },
+  { name: "Fresh Watermelon (Whole)", price: "₹79", priceNum: 79, weight: "3 kg", img: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=300&h=200&fit=crop", desc: "A sweet and juicy whole watermelon, perfect for summers. Hydrating and refreshing.", category: "Fruits" },
+  { name: "Black Seedless Grapes", price: "₹89", priceNum: 89, weight: "500 g", img: "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=300&h=200&fit=crop", desc: "Plump and sweet black seedless grapes. Rich in antioxidants and great for snacking.", category: "Fruits" },
+  { name: "Alphonso Mango (Pack)", price: "₹1120", priceNum: 1120, weight: "1 kg", img: "https://plantskingdom.in/cdn/shop/products/Background-hd-Mango-Wallpaper-Download.jpg?v=1657427057", desc: "The king of mangoes! Alphonso mangoes with a rich, sweet flavour and smooth texture.", category: "Fruits" },
+  { name: "Mushrooms", price: "₹54", priceNum: 54, weight: "400 g", img: "https://m.media-amazon.com/images/I/71XMKwfQCzL.jpg", desc: "Fresh button mushrooms with a mild, earthy flavour. Versatile ingredient for soups and stir-fry.", category: "Vegetables" },
+  { name: "Fresh Strawberries Punnet", price: "₹99", priceNum: 99, weight: "250 g", img: "https://images.unsplash.com/photo-1543528176-61b239494933?w=300&h=200&fit=crop", desc: "Bright red, sweet strawberries fresh from the farm. Perfect for desserts, smoothies, and snacking.", category: "Fruits" },
+  { name: "Extra Virgin Olive Oil", price: "₹499", priceNum: 499, weight: "750 ml", img: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&h=200&fit=crop", desc: "Cold-pressed extra virgin olive oil with a rich, fruity flavour. Ideal for cooking and dressings.", category: "Grocery" },
+  { name: "Full Cream Milk", price: "₹62", priceNum: 62, weight: "1 litre", img: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=300&h=200&fit=crop", desc: "Fresh full cream milk from local farms. Rich in calcium and protein.", category: "Dairy" },
+  { name: "Paneer (Cottage Cheese)", price: "₹89", priceNum: 89, weight: "200 g", img: "https://tiimg.tistatic.com/fp/1/004/926/fresh-white-panner-cheese--506.jpg", desc: "Soft and fresh paneer made from pure cow's milk. Perfect for curries and grills.", category: "Dairy" },
+  { name: "Amul Butter", price: "₹55", priceNum: 55, weight: "100 g", img: "https://cdn.prod.website-files.com/61ceb4bdd9b07747d016e346/61ceda9940038a156c280661_amul-butter-100-g.jpg", desc: "Creamy salted butter made from pure milk. Great for toast, cooking and baking.", category: "Dairy" },
+  { name: "Curd (Dahi)", price: "₹35", priceNum: 35, weight: "400 g", img: "https://m.media-amazon.com/images/I/61pxAmmwV0L._AC_UF894,1000_QL80_.jpg", desc: "Fresh homestyle curd, thick and creamy. Perfect with meals or for making lassi.", category: "Dairy" },
+  { name: "Multigrain Bread", price: "₹48", priceNum: 48, weight: "400 g", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&h=200&fit=crop", desc: "Healthy multigrain bread freshly baked every morning. Great for sandwiches and toast.", category: "Bakery & Pastry" },
+  { name: "Butter Croissant", price: "₹35", priceNum: 35, weight: "2 pcs", img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=300&h=200&fit=crop", desc: "Flaky, buttery croissants freshly baked. Perfect for breakfast with jam or butter.", category: "Bakery & Pastry" },
+  { name: "Chocolate Muffin", price: "₹45", priceNum: 45, weight: "2 pcs", img: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=300&h=200&fit=crop", desc: "Soft and moist chocolate muffins with a rich cocoa flavour. A perfect snack.", category: "Bakery & Pastry" },
+  { name: "Orange Juice", price: "₹75", priceNum: 75, weight: "1 litre", img: "https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=300&h=200&fit=crop", desc: "Freshly squeezed orange juice, 100% natural with no added sugar.", category: "Beverages" },
+  { name: "Green Tea", price: "₹120", priceNum: 120, weight: "25 bags", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300&h=200&fit=crop", desc: "Premium green tea bags packed with antioxidants. Refreshing and healthy.", category: "Beverages" },
+  { name: "Coconut Water", price: "₹40", priceNum: 40, weight: "200 ml", img: "https://images.unsplash.com/photo-1546171753-97d7676e4602?w=300&h=200&fit=crop", desc: "Natural coconut water, naturally sweet and hydrating. Great post-workout drink.", category: "Beverages" },
+  { name: "Basmati Rice", price: "₹180", priceNum: 180, weight: "1 kg", img: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300&h=200&fit=crop", desc: "Premium aged basmati rice with a delicate aroma. Perfect for biryanis and pulaos.", category: "Grocery" },
+  { name: "Toor Dal", price: "₹95", priceNum: 95, weight: "500 g", img: "https://cpimg.tistatic.com/7482702/b/4/toor-dal.jpg", desc: "High quality toor dal, rich in protein and easy to cook. A daily kitchen essential.", category: "Grocery" },
+];
+
+    /* ── ADD TO CART ── */
+    /* ── Cart badge loaded by syncCartBadge() below ── */
+
+    /* ── ADD TO CART helper — saves to localStorage ── */
+    function saveToCart(product, qty) {
+      /* Block admin from adding to cart */
+      if (localStorage.getItem('isAdmin') === 'true') return;
+      var items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+
+      /* Check if item already exists in cart */
+      var existing = items.findIndex(function(i) { return i.name === product.name; });
+
+      if (existing > -1) {
+        /* Already in cart — increase qty */
+        items[existing].qty += qty;
+      } else {
+        /* New item — add to cart */
+        items.push({
+          product_id: product.id   || null,
+          name:       product.name,
+          price:      product.priceNum || parseFloat((product.price + '').replace('₹','')),
+          qty:        qty,
+          weight:     product.weight || '',
+          img:        product.img   || product.image_url || '',
+          image_url:  product.img   || product.image_url || ''
+        });
+      }
+
+      localStorage.setItem('cartItems', JSON.stringify(items));
+
+      /* Update badge on all pages */
+      syncCartBadge();
+
+      /* Bounce animation */
+      document.querySelectorAll('.cart-count-badge, #cartBadge').forEach(function(el) {
+        el.style.transform = 'scale(1.5)';
+        setTimeout(function() { el.style.transform = 'scale(1)'; }, 200);
+      });
+    }
+
+    function addToCart(productName) {
+      /* Find product in productData by name */
+      var product = productData.find(function(p) { return p.name === productName; });
+      if (!product) return;
+      saveToCart(product, 1);
+    }
+
+
+    /* ── SEARCH ── */
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        var query = this.value.trim();
+        if (query) {
+          window.location.href = 'search.html?q=' + encodeURIComponent(query);
+        }
+      }
+    });
+
+  </script>
+
+  <!-- ══════════════════════════════════════
+       ADDRESS / LOCATION MODAL
+  ══════════════════════════════════════ -->
+  <div class="addr-overlay" id="addressModal" onclick="closeAddressModal()">
+    <div class="addr-box" onclick="event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="addr-header">
+        <h3 class="addr-title">📍 Select Delivery Address</h3>
+        <button class="addr-close" onclick="closeAddressModal()">✕</button>
+      </div>
+
+      <!-- Tab Switcher: Live GPS  |  Type Manually -->
+      <div class="addr-tabs">
+        <button class="addr-tab active" id="tabGps"    onclick="switchAddrTab('gps')">📡 Use My Location</button>
+        <button class="addr-tab"        id="tabManual" onclick="switchAddrTab('manual')">✏️ Type Manually</button>
+        <button class="addr-tab"        id="tabSaved"  onclick="switchAddrTab('saved')">🏠 Saved Addresses</button>
+      </div>
+
+      <!-- ── TAB 1: Live GPS ── -->
+      <div class="addr-panel active" id="panelGps">
+        <div class="gps-box" id="gpsBox">
+          <div class="gps-icon">📡</div>
+          <p class="gps-title">Detect my current location</p>
+          <p class="gps-sub">We'll use your device GPS to find your address automatically</p>
+          <button class="btn-detect" id="btnDetect" onclick="detectLocation()">
+            🔍 Detect Location
+          </button>
+        </div>
+
+        <!-- Shows after detection -->
+        <div class="gps-result" id="gpsResult" style="display:none;">
+          <div class="gps-result-icon">✅</div>
+          <div class="gps-result-info">
+            <p class="gps-result-label">Location Detected</p>
+            <p class="gps-result-addr" id="gpsDetectedAddr"></p>
+          </div>
+        </div>
+
+        <!-- Landmark / flat no field after GPS -->
+        <div class="addr-field-group" id="gpsExtraFields" style="display:none;">
+          <div class="addr-field">
+            <label>Flat / House No.</label>
+            <input type="text" id="gpsFlatNo" placeholder="e.g. Flat 4B, Tower C" />
+          </div>
+          <div class="addr-field">
+            <label>Landmark (optional)</label>
+            <input type="text" id="gpsLandmark" placeholder="e.g. Near City Mall" />
+          </div>
+          <div class="addr-field">
+            <label>Address Type</label>
+            <div class="addr-type-row">
+              <button class="addr-type-btn active" onclick="selectAddrType(this, 'Home')">🏠 Home</button>
+              <button class="addr-type-btn" onclick="selectAddrType(this, 'Work')">💼 Work</button>
+              <button class="addr-type-btn" onclick="selectAddrType(this, 'Other')">📍 Other</button>
+            </div>
+          </div>
+          <button class="btn-confirm-addr" onclick="confirmGpsAddress()">✅ Confirm Address</button>
+        </div>
+      </div>
+
+      <!-- ── TAB 2: Manual Entry ── -->
+      <div class="addr-panel" id="panelManual">
+
+        <!-- Search with suggestions -->
+        <div class="addr-search-wrap">
+          <span class="addr-search-icon">🔍</span>
+          <input
+            type="text"
+            id="manualSearchInput"
+            class="addr-search-input"
+            placeholder="Search area, street, city..."
+            oninput="searchAddress(this.value)"
+          />
+        </div>
+
+        <!-- Suggestion dropdown -->
+        <div class="addr-suggestions" id="addrSuggestions" style="display:none;"></div>
+
+        <!-- Full form -->
+        <div class="addr-form">
+          <div class="addr-field">
+            <label>Flat / House No. *</label>
+            <input type="text" id="manualFlat" placeholder="e.g. 12B, Green Apartments" />
+          </div>
+          <div class="addr-field">
+            <label>Street / Area *</label>
+            <input type="text" id="manualStreet" placeholder="e.g. MG Road, Koregaon Park" />
+          </div>
+          <div class="addr-field-row">
+            <div class="addr-field">
+              <label>City *</label>
+              <input type="text" id="manualCity" placeholder="e.g. Pune" />
+            </div>
+            <div class="addr-field">
+              <label>Pincode *</label>
+              <input type="text" id="manualPin" placeholder="e.g. 411001" maxlength="6" />
+            </div>
+          </div>
+          <div class="addr-field">
+            <label>State</label>
+            <select id="manualState">
+              <option value="">Select state</option>
+              <option>Maharashtra</option>
+              <option>Delhi</option>
+              <option>Karnataka</option>
+              <option>Tamil Nadu</option>
+              <option>Gujarat</option>
+              <option>Rajasthan</option>
+              <option>West Bengal</option>
+              <option>Uttar Pradesh</option>
+              <option>Telangana</option>
+              <option>Kerala</option>
+              <option>Madhya Pradesh</option>
+              <option>Punjab</option>
+              <option>Haryana</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="addr-field">
+            <label>Address Type</label>
+            <div class="addr-type-row">
+              <button class="addr-type-btn active" onclick="selectAddrType(this, 'Home')">🏠 Home</button>
+              <button class="addr-type-btn" onclick="selectAddrType(this, 'Work')">💼 Work</button>
+              <button class="addr-type-btn" onclick="selectAddrType(this, 'Other')">📍 Other</button>
+            </div>
+          </div>
+          <button class="btn-confirm-addr" onclick="confirmManualAddress()">✅ Save & Deliver Here</button>
+        </div>
+
+      </div>
+
+      <!-- ── TAB 3: Saved Addresses ── -->
+      <div class="addr-panel" id="panelSaved">
+        <div class="saved-list" id="savedAddressList">
+          <!-- Filled dynamically by JS -->
+        </div>
+        <p class="saved-empty" id="savedEmpty" style="display:none;">
+          No saved addresses yet. Add one from the other tabs!
+        </p>
+      </div>
+
+    </div>
+  </div>
+  <!-- end address modal -->
+
+
+  <!-- ══════════════════════════════════════
+       PRODUCT DETAIL MODAL
+       Shows when a product card is clicked
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="productModal" onclick="closeProduct()">
+
+    <div class="modal-box" onclick="event.stopPropagation()">
+
+      <!-- Close Button -->
+      <button class="modal-close" onclick="closeProduct()">✕</button>
+
+      <!-- Left: Product Image -->
+      <div class="modal-left">
+        <img src="" alt="" id="modalImg" class="modal-img" />
+        <div class="modal-badge-row">
+          <span class="modal-category" id="modalCategory"></span>
+          <span class="modal-stock" id="modalStock">✅ In Stock</span>
+        </div>
+      </div>
+
+      <!-- Right: Product Details -->
+      <div class="modal-right">
+
+        <p class="modal-brand">Grocery Mart</p>
+        <h2 class="modal-name" id="modalName"></h2>
+        <p class="modal-weight" id="modalWeight"></p>
+
+        <!-- Rating -->
+        <div class="modal-rating">
+          <span class="modal-stars">★★★★☆</span>
+          <span class="modal-reviews">(128 reviews)</span>
+        </div>
+
+        <!-- Price -->
+        <div class="modal-price-row">
+          <span class="modal-price" id="modalPrice"></span>
+          <span class="modal-price-note">incl. of all taxes</span>
+        </div>
+
+        <!-- Description -->
+        <p class="modal-desc" id="modalDesc"></p>
+
+        <!-- Highlights -->
+        <ul class="modal-highlights">
+          <li>✅ 100% Fresh & Natural</li>
+          <li>🚚 Delivery in 2 hours</li>
+          <li>🔄 Easy 7-day return</li>
+          <li>🌿 Sourced from local farms</li>
+        </ul>
+
+        <!-- Quantity Selector -->
+        <div class="modal-qty-section">
+          <p class="modal-qty-label">Quantity</p>
+          <div class="modal-qty-controls">
+            <button class="modal-qty-btn" onclick="changeModalQty(-1)">−</button>
+            <span class="modal-qty-val" id="modalQty">1</span>
+            <button class="modal-qty-btn" onclick="changeModalQty(1)">+</button>
+          </div>
+        </div>
+
+        <!-- Total Price -->
+        <p class="modal-total">Total: <strong id="modalTotal"></strong></p>
+
+        <!-- Action Buttons -->
+        <div class="modal-actions">
+          <button class="modal-btn-cart" onclick="addToCartFromModal()">
+            🛒 Add to Cart
+          </button>
+          <button class="modal-btn-buy" onclick="window.location.href='checkout.html'">
+            ⚡ Buy Now
+          </button>
+        </div>
+
+      </div>
+      <!-- end modal-right -->
+
+    </div>
+    <!-- end modal-box -->
+
+  </div>
+  <!-- end modal -->
+
+
+  <!-- ══════════════════════════════════════
+       JAVASCRIPT  (Product Modal)
+  ══════════════════════════════════════ -->
+  <script>
+
+    var currentProduct = null;   /* stores the currently open product */
+    var modalQty       = 1;      /* current quantity in modal */
+
+    /* ── OPEN product detail modal ── */
+    function openProduct(index) {
+      var p = productData[index];
+      if (!p) return;
+
+      currentProduct = p;
+      modalQty       = 1;
+
+      /* Fill in modal content */
+      document.getElementById('modalImg').src        = p.img;
+      document.getElementById('modalImg').alt        = p.name;
+      document.getElementById('modalName').textContent     = p.name;
+      document.getElementById('modalWeight').textContent   = '📦 ' + p.weight;
+      document.getElementById('modalPrice').textContent    = p.price;
+      document.getElementById('modalCategory').textContent = p.category;
+      document.getElementById('modalDesc').textContent     = p.desc;
+      document.getElementById('modalQty').textContent      = modalQty;
+      document.getElementById('modalTotal').textContent    = '₹' + (p.priceNum * modalQty).toLocaleString('en-IN');
+
+      /* Show the modal */
+      document.getElementById('productModal').classList.add('open');
+      document.body.style.overflow = 'hidden';   /* stop page scrolling */
+    }
+
+    /* ── CLOSE product detail modal ── */
+    function closeProduct() {
+      document.getElementById('productModal').classList.remove('open');
+      document.body.style.overflow = '';         /* restore scrolling */
+    }
+
+    /* ── CHANGE quantity in modal ── */
+    function changeModalQty(change) {
+      modalQty = modalQty + change;
+      if (modalQty < 1) modalQty = 1;
+      if (modalQty > 99) modalQty = 99;
+
+      document.getElementById('modalQty').textContent = modalQty;
+
+      /* Update total price */
+      if (currentProduct) {
+        var total = currentProduct.priceNum * modalQty;
+        document.getElementById('modalTotal').textContent = '₹' + total.toLocaleString('en-IN');
+      }
+    }
+
+    /* ── ADD TO CART from modal ── */
+    function addToCartFromModal() {
+      if (!currentProduct) return;
+      if (localStorage.getItem('isAdmin') === 'true') {
+        alert('Admin cannot place orders. Please use a customer account.');
+        return;
+      }
+      if (localStorage.getItem('shopOpen') === 'false') {
+        alert('🔴 Our outlet is currently closed.\n\nWe are open daily from 7:00 AM – 10:30 PM.\nPlease visit us again during store hours.');
+        return;
+      }
+      saveToCart(currentProduct, modalQty);
+      alert('✅ ' + modalQty + 'x ' + currentProduct.name + ' added to cart!');
+      closeProduct();
+    }
+
+    /* Close modal with Escape key */
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeProduct();
+        closeAddressModal();
+      }
+    });
+
+
+    /* ════════════════════════════════════════
+       ADDRESS MODAL JAVASCRIPT
+    ════════════════════════════════════════ */
+
+    var selectedAddrType = 'Home';   /* default address type */
+
+    /* ── OPEN address modal ── */
+    function openAddressModal() {
+      document.getElementById('addressModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      loadSavedAddresses();   /* load saved addresses on open */
+    }
+
+    /* ── CLOSE address modal ── */
+    function closeAddressModal() {
+      document.getElementById('addressModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    /* ── SWITCH between tabs (GPS / Manual / Saved) ── */
+    function switchAddrTab(tabName) {
+
+      /* Remove active from all tabs and panels */
+      document.querySelectorAll('.addr-tab').forEach(function(t) {
+        t.classList.remove('active');
+      });
+      document.querySelectorAll('.addr-panel').forEach(function(p) {
+        p.classList.remove('active');
+      });
+
+      /* Activate chosen tab and panel */
+      document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+      document.getElementById('panel' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+    }
+
+    /* ── SELECT address type (Home / Work / Other) ── */
+    function selectAddrType(btn, type) {
+      selectedAddrType = type;
+      /* Remove active from all type buttons in the same row */
+      btn.closest('.addr-type-row').querySelectorAll('.addr-type-btn').forEach(function(b) {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+    }
+
+    /* ── DETECT live GPS location ── */
+    function detectLocation() {
+      var btn = document.getElementById('btnDetect');
+      btn.textContent = '⏳ Detecting...';
+      btn.disabled    = true;
+
+      /* Check if browser supports geolocation */
+      if (!navigator.geolocation) {
+        alert('Your browser does not support location detection.');
+        btn.textContent = '🔍 Detect Location';
+        btn.disabled    = false;
+        return;
+      }
+
+      /* Ask browser for coordinates */
+      navigator.geolocation.getCurrentPosition(
+
+        /* SUCCESS: got coordinates */
+        function(position) {
+          var lat = position.coords.latitude;
+          var lon = position.coords.longitude;
+
+          /* Use reverse geocoding API to convert lat/lon → address */
+          fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon)
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+              var addr    = data.address;
+              var display = [
+                addr.road || addr.neighbourhood || '',
+                addr.suburb || addr.village || '',
+                addr.city || addr.town || addr.county || '',
+                addr.state || '',
+                addr.postcode || ''
+              ].filter(Boolean).join(', ');
+
+              /* Show the detected address */
+              document.getElementById('gpsDetectedAddr').textContent = display;
+              document.getElementById('gpsResult').style.display      = 'flex';
+              document.getElementById('gpsExtraFields').style.display  = 'block';
+              document.getElementById('gpsBox').style.display          = 'none';
+            })
+            .catch(function() {
+              alert('Could not fetch address details. Please try manual entry.');
+              btn.textContent = '🔍 Detect Location';
+              btn.disabled    = false;
+            });
+        },
+
+        /* ERROR: user denied or location unavailable */
+        function(err) {
+          var msg = 'Location access denied.';
+          if (err.code === 1) msg = '⛔ Location permission denied. Please allow location access in your browser settings, or use manual entry.';
+          if (err.code === 2) msg = '❌ Location unavailable. Please try manual entry.';
+          if (err.code === 3) msg = '⏱ Location request timed out. Please try again.';
+          alert(msg);
+          btn.textContent = '🔍 Detect Location';
+          btn.disabled    = false;
+        }
+      );
+    }
+
+    /* ── CONFIRM GPS address ── */
+    function confirmGpsAddress() {
+      var detectedAddr = document.getElementById('gpsDetectedAddr').textContent;
+      var flatNo       = document.getElementById('gpsFlatNo').value.trim();
+      var landmark     = document.getElementById('gpsLandmark').value.trim();
+
+      if (!detectedAddr) {
+        alert('Please detect your location first.');
+        return;
+      }
+      if (!flatNo) {
+        alert('Please enter your flat / house number.');
+        return;
+      }
+
+      var fullAddr = flatNo + ', ' + detectedAddr;
+      if (landmark) fullAddr += ' (Near ' + landmark + ')';
+
+      saveAndSetAddress(fullAddr, selectedAddrType);
+    }
+
+    /* ── SEARCH address suggestions (OpenStreetMap Nominatim) ── */
+    var searchTimeout = null;
+
+    function searchAddress(query) {
+      clearTimeout(searchTimeout);
+      var suggestBox = document.getElementById('addrSuggestions');
+
+      if (query.length < 3) {
+        suggestBox.style.display = 'none';
+        return;
+      }
+
+      /* Debounce: wait 400ms before sending request */
+      searchTimeout = setTimeout(function() {
+        fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&countrycodes=in&limit=5')
+          .then(function(res) { return res.json(); })
+          .then(function(results) {
+            suggestBox.innerHTML = '';
+
+            if (results.length === 0) {
+              suggestBox.style.display = 'none';
+              return;
+            }
+
+            results.forEach(function(r) {
+              var item = document.createElement('div');
+              item.className   = 'addr-suggest-item';
+              item.textContent = r.display_name;
+
+              item.onclick = function() {
+                /* Fill the street field with selected suggestion */
+                var parts = r.display_name.split(',');
+                document.getElementById('manualStreet').value = parts.slice(0, 3).join(',').trim();
+                if (parts[parts.length - 3]) {
+                  document.getElementById('manualCity').value = parts[parts.length - 3].trim();
+                }
+                document.getElementById('manualSearchInput').value = r.display_name.substring(0, 50);
+                suggestBox.style.display = 'none';
+              };
+
+              suggestBox.appendChild(item);
+            });
+
+            suggestBox.style.display = 'block';
+          })
+          .catch(function() {
+            suggestBox.style.display = 'none';
+          });
+      }, 400);
+    }
+
+    /* ── CONFIRM manual address ── */
+    function confirmManualAddress() {
+      var flat   = document.getElementById('manualFlat').value.trim();
+      var street = document.getElementById('manualStreet').value.trim();
+      var city   = document.getElementById('manualCity').value.trim();
+      var pin    = document.getElementById('manualPin').value.trim();
+      var state  = document.getElementById('manualState').value;
+
+      /* Validate required fields */
+      if (!flat || !street || !city || !pin) {
+        alert('Please fill in all required fields (*).');
+        return;
+      }
+      if (pin.length !== 6 || isNaN(pin)) {
+        alert('Please enter a valid 6-digit pincode.');
+        return;
+      }
+
+      var fullAddr = flat + ', ' + street + ', ' + city + ' - ' + pin;
+      if (state) fullAddr += ', ' + state;
+
+      saveAndSetAddress(fullAddr, selectedAddrType);
+    }
+
+    /* ── SAVE address to localStorage and update navbar ── */
+    function saveAndSetAddress(fullAddr, type) {
+
+      /* Show in navbar */
+      var displayText = type + ': ' + fullAddr;
+      var shortText   = fullAddr.length > 28 ? fullAddr.substring(0, 28) + '...' : fullAddr;
+      document.getElementById('deliveryAddressText').textContent = shortText;
+      document.getElementById('deliveryInfoBtn').title           = fullAddr;
+
+      /* Save to localStorage */
+      localStorage.setItem('deliveryAddress', fullAddr);
+      localStorage.setItem('deliveryType',    type);
+
+      /* Save to saved addresses list */
+      var saved = JSON.parse(localStorage.getItem('savedAddresses') || '[]');
+
+      /* Avoid duplicates */
+      var exists = saved.some(function(a) { return a.address === fullAddr; });
+      if (!exists) {
+        saved.unshift({ address: fullAddr, type: type });
+        if (saved.length > 5) saved.pop();   /* keep max 5 saved */
+        localStorage.setItem('savedAddresses', JSON.stringify(saved));
+      }
+
+      closeAddressModal();
+      alert('✅ Address set: ' + fullAddr);
+    }
+
+    /* ── LOAD saved addresses in tab 3 ── */
+    function loadSavedAddresses() {
+      var saved    = JSON.parse(localStorage.getItem('savedAddresses') || '[]');
+      var list     = document.getElementById('savedAddressList');
+      var emptyMsg = document.getElementById('savedEmpty');
+
+      list.innerHTML = '';
+
+      if (saved.length === 0) {
+        emptyMsg.style.display = 'block';
+        return;
+      }
+
+      emptyMsg.style.display = 'none';
+
+      saved.forEach(function(item, i) {
+        var icons = { Home: '🏠', Work: '💼', Other: '📍' };
+        var card  = document.createElement('div');
+        card.className = 'saved-addr-card';
+        card.innerHTML =
+          '<div class="saved-addr-left">' +
+            '<span class="saved-addr-icon">' + (icons[item.type] || '📍') + '</span>' +
+            '<div>' +
+              '<p class="saved-addr-type">' + item.type + '</p>' +
+              '<p class="saved-addr-text">' + item.address + '</p>' +
+            '</div>' +
+          '</div>' +
+          '<div class="saved-addr-actions">' +
+            '<button class="btn-use-addr" onclick="useAddress(' + i + ')">Deliver Here</button>' +
+            '<button class="btn-del-addr" onclick="deleteAddress(' + i + ')">🗑</button>' +
+          '</div>';
+        list.appendChild(card);
+      });
+    }
+
+    /* ── DELIVER to a saved address ── */
+    function useAddress(index) {
+      var saved = JSON.parse(localStorage.getItem('savedAddresses') || '[]');
+      if (saved[index]) {
+        saveAndSetAddress(saved[index].address, saved[index].type);
+      }
+    }
+
+    /* ── DELETE a saved address ── */
+    function deleteAddress(index) {
+      var saved = JSON.parse(localStorage.getItem('savedAddresses') || '[]');
+      saved.splice(index, 1);
+      localStorage.setItem('savedAddresses', JSON.stringify(saved));
+      loadSavedAddresses();
+    }
+
+    /* ── ON PAGE LOAD: restore saved address in navbar ── */
+    (function restoreAddress() {
+      var addr = localStorage.getItem('deliveryAddress');
+      var type = localStorage.getItem('deliveryType');
+      if (addr) {
+        var short = addr.length > 28 ? addr.substring(0, 28) + '...' : addr;
+        document.getElementById('deliveryAddressText').textContent = (type ? type + ': ' : '') + short;
+      }
+    })();
+
+    /* Close address suggestions when clicking outside */
+    document.addEventListener('click', function(e) {
+      var suggestBox = document.getElementById('addrSuggestions');
+      if (suggestBox && !e.target.closest('.addr-search-wrap')) {
+        suggestBox.style.display = 'none';
+      }
+    });
+
+    /* ── SYNC CART BADGE from localStorage ── */
+    function syncCartBadge() {
+      var items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      var total = items.reduce(function(s, i) { return s + (i.qty || 1); }, 0);
+      document.querySelectorAll('.cart-count-badge, #cartBadge').forEach(function(el) {
+        el.textContent = total || 0;
+      });
+    }
+
+    /* Run syncCartBadge on load */
+    window.addEventListener('load', function() {
+      syncCartBadge();
+    });
+
+  </script>
+
+</body>
+</html>
