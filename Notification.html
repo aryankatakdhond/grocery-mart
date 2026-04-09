@@ -163,7 +163,7 @@
     function clearAll() {
       if (!confirm('Clear all notifications?')) return;
       localStorage.removeItem('orderNotifs');
-      localStorage.removeItem('notifLastSeen');
+      localStorage.removeItem('notifLastSeen' );
       render();
     }
 
