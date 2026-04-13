@@ -5,8 +5,7 @@
 -- ============================================
 
 -- Create and use the database
-CREATE DATABASE IF NOT EXISTS grocerymart;
-USE grocerymart;
+USE defaultdb;
 
 
 -- ── TABLE: users ──
