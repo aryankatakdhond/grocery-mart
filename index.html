@@ -435,6 +435,33 @@
       ? window.location.origin
       : 'http://localhost:5000';
 
+    var PRODUCT_PLACEHOLDER_IMAGE =
+      'data:image/svg+xml;charset=UTF-8,' +
+      encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">' +
+          '<rect width="640" height="480" rx="28" fill="#f4f7f5"/>' +
+          '<rect x="48" y="48" width="544" height="384" rx="22" fill="#e1ebe4"/>' +
+          '<circle cx="210" cy="184" r="58" fill="#7cc58a"/>' +
+          '<rect x="258" y="128" width="170" height="180" rx="20" fill="#d4a373"/>' +
+          '<text x="320" y="384" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="28" font-weight="700" fill="#2d6a4f">Image unavailable</text>' +
+        '</svg>'
+      );
+
+    function getProductImageSrc(product) {
+      var src = (product && (product.img || product.image_url)) ? String(product.img || product.image_url).trim() : '';
+      return src || PRODUCT_PLACEHOLDER_IMAGE;
+    }
+
+    function setImageWithFallback(imgEl, src, altText) {
+      if (!imgEl) return;
+      imgEl.alt = altText || '';
+      imgEl.onerror = function() {
+        this.onerror = null;
+        this.src = PRODUCT_PLACEHOLDER_IMAGE;
+      };
+      imgEl.src = src || PRODUCT_PLACEHOLDER_IMAGE;
+    }
+
     /* ── FETCH SHOP STATUS from API on page load ── */
     function checkShopStatus() {
       fetch(API + '/api/shop/status')
@@ -485,11 +512,12 @@
         ? '<div class="deal-badge">-' + Math.round((1 - p.price / p.old_price) * 100) + '%</div>'
         : '';
       var safeP    = encodeURIComponent(JSON.stringify(p));
+      var imageSrc = getProductImageSrc(p);
 
       return '<div class="product-card" onclick="openProductById(' + p.id + ')">' +
           badge +
           '<div class="product-img">' +
-            '<img src="' + p.image_url + '" alt="' + p.name + '" loading="lazy"/>' +
+            '<img src="' + imageSrc + '" alt="' + p.name + '" loading="lazy" onerror="this.onerror=null;this.src=\'' + PRODUCT_PLACEHOLDER_IMAGE + '\'"/>' +
           '</div>' +
           '<div class="product-info">' +
             '<p class="product-brand">Grocery Mart</p>' +
@@ -806,6 +834,24 @@
     }
 
     /* ── Load categories from API into nav ── */
+    function getCategoryEmoji(name, emoji) {
+      var cleanEmoji = (emoji || '').trim();
+      if (cleanEmoji && cleanEmoji !== '?' && cleanEmoji !== '??' && cleanEmoji !== '???' && cleanEmoji !== '????') {
+        return cleanEmoji;
+      }
+
+      var fallback = {
+        'Fruits': '🍎',
+        'Vegetables': '🥦',
+        'Grocery': '🛍️',
+        'Bakery & Pastry': '🍞',
+        'Beverages': '🧃',
+        'Dairy': '🥛'
+      };
+
+      return fallback[name] || '';
+    }
+
     function loadCategories() {
       fetch(API + '/api/products/categories/all')
         .then(function(res) { return res.json(); })
@@ -829,8 +875,9 @@
                        '<span class="cat-grid-icon">⊞</span> All Categories' +
                      '</li>';
           cats.forEach(function(cat) {
+            var icon = getCategoryEmoji(cat.name, cat.emoji);
             html += '<li class="cat-item" data-cat="' + cat.name + '" onclick="setActive(this)">' +
-                      (cat.emoji ? cat.emoji + ' ' : '') + cat.name +
+                      (icon ? icon + ' ' : '') + cat.name +
                     '</li>';
           });
           list.innerHTML = html;
@@ -1070,11 +1117,12 @@
 
         var displayPrice = p.price || ('\u20B9' + p.priceNum);
         var oldP = p.old_price ? '<span class="price-old">\u20B9' + p.old_price + '</span>' : '';
+        var imageSrc = getProductImageSrc(p);
 
         card.innerHTML =
           '<div class="product-img">' +
             (isDeals ? '<div class="deal-badge">' + (p.discount || '') + '</div>' : '') +
-            '<img src="' + (p.img || p.image_url || '') + '" alt="' + p.name + '" loading="lazy"/>' +
+            '<img src="' + imageSrc + '" alt="' + p.name + '" loading="lazy" onerror="this.onerror=null;this.src=\'' + PRODUCT_PLACEHOLDER_IMAGE + '\'"/>' +
           '</div>' +
           '<div class="product-info">' +
             '<p class="product-brand">Grocery Mart</p>' +
@@ -1452,8 +1500,7 @@ var productData = [
       modalQty       = 1;
 
       /* Fill in modal content */
-      document.getElementById('modalImg').src        = p.img;
-      document.getElementById('modalImg').alt        = p.name;
+      setImageWithFallback(document.getElementById('modalImg'), getProductImageSrc(p), p.name);
       document.getElementById('modalName').textContent     = p.name;
       document.getElementById('modalWeight').textContent   = '📦 ' + p.weight;
       document.getElementById('modalPrice').textContent    = p.price;

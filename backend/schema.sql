@@ -6,6 +6,7 @@
 
 -- Create and use the database
 USE defaultdb;
+SET NAMES utf8mb4;
 
 
 -- ── TABLE: users ──
@@ -39,7 +40,7 @@ CREATE TABLE IF NOT EXISTS categories (
   emoji      VARCHAR(10)  DEFAULT '📦',
   is_visible TINYINT(1)   DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Default categories
 INSERT IGNORE INTO categories (name, emoji) VALUES
