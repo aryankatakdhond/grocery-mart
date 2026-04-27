@@ -836,7 +836,11 @@
     /* ── Load categories from API into nav ── */
     function getCategoryEmoji(name, emoji) {
       var cleanEmoji = (emoji || '').trim();
-      if (cleanEmoji && cleanEmoji !== '?' && cleanEmoji !== '??' && cleanEmoji !== '???' && cleanEmoji !== '????') {
+      
+      /* Check if emoji is broken (all or mostly question marks) */
+      var isBroken = /^\?+$/.test(cleanEmoji) || !cleanEmoji;
+      
+      if (!isBroken && cleanEmoji) {
         return cleanEmoji;
       }
 
