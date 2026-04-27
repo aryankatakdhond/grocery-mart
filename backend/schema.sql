@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS orders (
   updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
+`
 
 -- ── TABLE: order_items ──
 -- Individual products inside each order
