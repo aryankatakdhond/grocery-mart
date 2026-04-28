@@ -89,6 +89,22 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Payment method required.' });
     }
 
+    // Verify user exists in database
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ success: false, message: 'User authentication failed. Please log in again.' });
+    }
+
+    const [userCheck] = await conn.query(
+      'SELECT id FROM users WHERE id = ?',
+      [req.user.id]
+    );
+
+    if (userCheck.length === 0) {
+      await conn.rollback();
+      conn.release();
+      return res.status(404).json({ success: false, message: 'User not found. Please log in again.' });
+    }
+
     // Generate unique order number
     const orderNumber = 'ORD' + Date.now();
 
