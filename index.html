@@ -293,6 +293,20 @@
     </section>
 
 
+    <!-- ── DAIRY & BAKERY DELIGHTS ROW ── -->
+    <section class="products-section">
+      <div class="section-header">
+        <h2 class="section-title">Dairy & Bakery Delights 🥛</h2>
+        <span class="view-all-btn" style="cursor:default;pointer-events:none;">7 fresh products</span>
+      </div>
+      <div class="products-slider-wrapper">
+        <button class="prod-arrow prod-prev" onclick="scrollDairyBakery(-1)">&#8249;</button>
+        <div class="products-row" id="dairyBakeryRow"></div>
+        <button class="prod-arrow prod-next" onclick="scrollDairyBakery(1)">&#8250;</button>
+      </div>
+    </section>
+
+
     <!-- ── PROMO BANNER ── -->
     <section class="promo-banner">
       <div class="promo-left">
@@ -925,6 +939,7 @@
     loadFeaturedProducts();
     loadDealsProducts();
     loadGroceryEssentials();
+    loadDairyBakery();
     checkShopStatus();
 
     /* ── CHECK SHOP STATUS EVERY 8 SECONDS (So users see updates quickly) ── */
@@ -1029,6 +1044,11 @@
       row.scrollLeft = row.scrollLeft + (direction * 220);
     }
 
+    function scrollDairyBakery(direction) {
+      var row = document.getElementById('dairyBakeryRow');
+      row.scrollLeft = row.scrollLeft + (direction * 220);
+    }
+
 
     /* ── DEALS DATA (for View All grid) ── */
     var dealsData = [
@@ -1086,6 +1106,53 @@
 
       row.innerHTML = groceryEssentialsData.map(function(p) {
         return makeGroceryCard(p);
+      }).join('');
+    }
+
+    var dairyBakeryData = [
+      { id:'dairy-milk',        name:'Full Cream Milk',       price:62,   weight:'1 litre',  img:'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=300&h=200&fit=crop', category:'Dairy' },
+      { id:'dairy-paneer',      name:'Paneer (Cottage Cheese)',price:89,   weight:'200 g',    img:'https://tiimg.tistatic.com/fp/1/004/926/fresh-white-panner-cheese--506.jpg', category:'Dairy' },
+      { id:'dairy-butter',      name:'Amul Butter',           price:55,   weight:'100 g',    img:'https://cdn.prod.website-files.com/61ceb4bdd9b07747d016e346/61ceda9940038a156c280661_amul-butter-100-g.jpg', category:'Dairy' },
+      { id:'dairy-curd',        name:'Curd (Dahi)',           price:35,   weight:'400 g',    img:'https://m.media-amazon.com/images/I/61pxAmmwV0L._AC_UF894,1000_QL80_.jpg', category:'Dairy' },
+      { id:'bakery-bread',      name:'Multigrain Bread',      price:48,   weight:'400 g',    img:'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&h=200&fit=crop', category:'Bakery & Pastry' },
+      { id:'bakery-croissant',  name:'Butter Croissant',      price:35,   weight:'2 pcs',    img:'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=300&h=200&fit=crop', category:'Bakery & Pastry' },
+      { id:'bakery-muffin',     name:'Chocolate Muffin',      price:45,   weight:'2 pcs',    img:'https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=300&h=200&fit=crop', category:'Bakery & Pastry' }
+    ];
+
+    function makeDairyBakeryCard(p) {
+      var safeP = encodeURIComponent(JSON.stringify({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        priceNum: p.price,
+        weight: p.weight,
+        img: p.img,
+        image_url: p.img,
+        category: p.category
+      }));
+
+      return '<div class="product-card" style="cursor:default;">' +
+          '<div class="product-img">' +
+            '<img src="' + p.img + '" alt="' + p.name + '" loading="lazy" onerror="this.onerror=null;this.src=\'' + PRODUCT_PLACEHOLDER_IMAGE + '\'"/>' +
+          '</div>' +
+          '<div class="product-info">' +
+            '<p class="product-brand">Grocery Mart</p>' +
+            '<p class="product-name">' + p.name + '</p>' +
+            '<p class="product-weight">' + p.weight + '</p>' +
+            '<div class="product-footer">' +
+              '<div>₹' + p.price.toFixed(2) + '</div>' +
+              '<button class="btn-add-cart" onclick="event.stopPropagation(); saveToCart(JSON.parse(decodeURIComponent(\'' + safeP + '\')), 1)">+</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    function loadDairyBakery() {
+      var row = document.getElementById('dairyBakeryRow');
+      if (!row) return;
+
+      row.innerHTML = dairyBakeryData.map(function(p) {
+        return makeDairyBakeryCard(p);
       }).join('');
     }
     
