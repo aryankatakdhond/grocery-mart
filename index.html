@@ -279,6 +279,20 @@
     </section>
 
 
+    <!-- ── GROCERY ESSENTIALS ROW ── -->
+    <section class="products-section">
+      <div class="section-header">
+        <h2 class="section-title">Grocery Essentials 🛍️</h2>
+        <span class="view-all-btn" style="cursor:default;pointer-events:none;">5 handpicked products</span>
+      </div>
+      <div class="products-slider-wrapper">
+        <button class="prod-arrow prod-prev" onclick="scrollGrocery(-1)">&#8249;</button>
+        <div class="products-row" id="groceryRow"></div>
+        <button class="prod-arrow prod-next" onclick="scrollGrocery(1)">&#8250;</button>
+      </div>
+    </section>
+
+
     <!-- ── PROMO BANNER ── -->
     <section class="promo-banner">
       <div class="promo-left">
@@ -910,6 +924,7 @@
     loadCategories();
     loadFeaturedProducts();
     loadDealsProducts();
+    loadGroceryEssentials();
     checkShopStatus();
 
     /* ── CHECK SHOP STATUS EVERY 8 SECONDS (So users see updates quickly) ── */
@@ -1009,6 +1024,11 @@
       row.scrollLeft = row.scrollLeft + (direction * 220);
     }
 
+    function scrollGrocery(direction) {
+      var row = document.getElementById('groceryRow');
+      row.scrollLeft = row.scrollLeft + (direction * 220);
+    }
+
 
     /* ── DEALS DATA (for View All grid) ── */
     var dealsData = [
@@ -1021,6 +1041,53 @@
       { name:'Full Cream Milk',        price:'₹55',  oldPrice:'₹62',  discount:'-11%', weight:'1 litre',img:'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=300&h=200&fit=crop',        category:'Dairy' },
       { name:'Butter Croissant',       price:'₹29',  oldPrice:'₹35',  discount:'-17%', weight:'2 pcs',  img:'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=300&h=200&fit=crop',        category:'Bakery & Pastry' },
     ];
+
+    var groceryEssentialsData = [
+      { id:'grocery-rice',  name:'Basmati Rice',          price:180, weight:'1 kg',   img:'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300&h=200&fit=crop', category:'Grocery' },
+      { id:'grocery-dal',   name:'Toor Dal',              price:95,  weight:'500 g',  img:'https://cpimg.tistatic.com/7482702/b/4/toor-dal.jpg', category:'Grocery' },
+      { id:'grocery-oil',   name:'Extra Virgin Olive Oil',price:499, weight:'750 ml', img:'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&h=200&fit=crop', category:'Grocery' },
+      { id:'grocery-sugar', name:'Organic Sugar',         price:72,  weight:'1 kg',   img:'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=300&h=200&fit=crop', category:'Grocery' },
+      { id:'grocery-salt',  name:'Himalayan Pink Salt',   price:48,  weight:'1 kg',   img:'https://images.unsplash.com/photo-1516617442634-75371039cb3a?w=300&h=200&fit=crop', category:'Grocery' }
+    ];
+
+    function makeGroceryCard(p) {
+      var safeP = encodeURIComponent(JSON.stringify({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        priceNum: p.price,
+        weight: p.weight,
+        img: p.img,
+        image_url: p.img,
+        category: p.category
+      }));
+
+      return '<div class="product-card" style="cursor:default;">' +
+          '<div class="product-img">' +
+            '<img src="' + p.img + '" alt="' + p.name + '" loading="lazy" onerror="this.onerror=null;this.src=\'' + PRODUCT_PLACEHOLDER_IMAGE + '\'"/>' +
+          '</div>' +
+          '<div class="product-info">' +
+            '<p class="product-brand">Grocery Mart</p>' +
+            '<p class="product-name">' + p.name + '</p>' +
+            '<p class="product-weight">' + p.weight + '</p>' +
+            '<div class="product-footer">' +
+              '<div>₹' + p.price.toFixed(2) + '</div>' +
+              '<button class="btn-add-cart" onclick="event.stopPropagation(); saveToCart(JSON.parse(decodeURIComponent(\'' + safeP + '\')), 1)">+</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    function loadGroceryEssentials() {
+      var row = document.getElementById('groceryRow');
+      if (!row) return;
+
+      row.innerHTML = groceryEssentialsData.map(function(p) {
+        return makeGroceryCard(p);
+      }).join('');
+    }
+    
+    
 
 
     /* ── VIEW ALL TOGGLE ── */
